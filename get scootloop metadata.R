@@ -2,6 +2,7 @@ library(dplyr)
 library(httr)
 library(jsonlite)
 library(sf)
+library(lubridate)
 
 source("API key.R")
 
@@ -12,7 +13,8 @@ source("API key.R")
 
 # get scoot metadata 
 
-endpoint <- "https://api.tfgm.com/odata/ScootLoops?$expand=EndLocation,StartLocation&$top=10"
+# endpoint <- "https://api.tfgm.com/odata/ScootLoops?$expand=EndLocation,StartLocation&$top=100"
+endpoint <- "https://api.tfgm.com/odata/ScootLoops?$expand=StartLocation,EndLocation&$top=10"
 
 response <- httr::GET(
   url = endpoint,
@@ -28,6 +30,13 @@ scoot_meta <- fromJSON(content(response, "text"))$value %>%
 scoot_meta2 <- scoot_meta %>% 
   mutate(start_location_point = start_location$LocationSpatial$Geography$WellKnownText,
          end_location_point = end_location$LocationSpatial$Geography$WellKnownText) %>%
-  select(-c(start_location, end_location)) %>%
-  # well known text ie common text format fro points
-  st_as_sfc(coords = start_location_point, crs = 4326) # lat/ long
+ select(-c(start_location, end_location)) %>%
+  # make date format
+  mutate(last_updated = as.POSIXct(last_updated)) %>%
+  # missing locations don't seem to be being updated anyway
+  filter(!is.na(start_location_point)) %>%
+  # well known text ie common text format for points
+  # works with col num but not name. needs missings deleted & unnesting
+  st_as_sf(wkt = 7, crs = 4326) # lat/ long
+
+
