@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1617368204556.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "5CDF26FA",
+    "lastKnownWriteTime" : 8391446501476088864,
+    "last_content_update" : 1617368204556,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "id" : "a3f2a7b6b99945ddbf55ff1712a0833d",
+        "name" : "<Edmx>",
+        "title" : "scoot_meta"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "object_explorer"
+}

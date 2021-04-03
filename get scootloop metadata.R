@@ -4,39 +4,71 @@ library(jsonlite)
 library(sf)
 library(lubridate)
 
+library(xml2)
+library(XML)
+library(purrr)
+
 source("API key.R")
 
 # login
   headers <- add_headers("Ocp-Apim-Subscription-Key" = mykey)
 
-#endpoint <- "https://api.tfgm.com/odata/$metadata"
-
 # get scoot metadata 
 
-# endpoint <- "https://api.tfgm.com/odata/ScootLoops?$expand=EndLocation,StartLocation&$top=100"
-endpoint <- "https://api.tfgm.com/odata/ScootLoops?$expand=StartLocation,EndLocation&$top=10"
+endpoint <- "https://api.tfgm.com/odata/$metadata"
 
 response <- httr::GET(
   url = endpoint,
   config = headers)
 
-# parse as text
-scoot_meta <- fromJSON(content(response, "text"))$value %>%
-  janitor::clean_names()
-
-# start & end points are each in thier little spatiial data frame
-# not got these to read as spatial yet tho
+scoot_meta <- 
+  # extract as text
+  content(response, "text")
 
 scoot_meta2 <- scoot_meta %>% 
-  mutate(start_location_point = start_location$LocationSpatial$Geography$WellKnownText,
-         end_location_point = end_location$LocationSpatial$Geography$WellKnownText) %>%
- select(-c(start_location, end_location)) %>%
-  # make date format
-  mutate(last_updated = as.POSIXct(last_updated)) %>%
-  # missing locations don't seem to be being updated anyway
-  filter(!is.na(start_location_point)) %>%
-  # well known text ie common text format for points
-  # works with col num but not name. needs missings deleted & unnesting
-  st_as_sf(wkt = 7, crs = 4326) # lat/ long
+  # convert text to xml
+  read_xml()
+
+scoot_meta2
+  xml_children() %>%
+  xml_children() %>%
+    [1]
 
 
+# scoot_meta2 <- xmlParse(scoot_meta)
+
+scoot_meta3 <- xmlToList(scoot_meta)
+# 
+# 
+# 
+# scoot_meta3 <- scoot_meta2 %>%
+#   xmlTreeParse(asText = TRUE, useInternalNodes = TRUE)
+# 
+# name_path <- "EntityType"
+# target_path <- "//Target"
+# entitytype_path <- "//EntityType"
+# schema_path <- "Schema"
+# 
+# scoot_meta_df <- data.frame(
+#   schema = sapply(scoot_meta2[name_path], xmlValue)
+# )
+# 
+# do.call("rbind", xpathApply(scoot_meta3, "//Points/Point", function(x)
+#   data.frame(id = as.numeric(xmlAttrs(x)[["id"]]),
+#              Tags = c(gsub('"', '', xmlValue(x[["Tags"]])), NA)[[1]],
+#              Position = as.numeric(xmlAttrs(x[["Point"]])[["Position"]],
+#                                    stringsAsFactors = FALSE)
+#              )
+#   ))
+# 
+# scoot_meta3 <- 
+#   xml_find_all(scoot_meta2, ".//Points/Point") %>%
+#   map_df(function(x) {
+#     list(
+#       Point=xml_attr(x, "Id"),
+#       Tag=xml_find_first(x, ".//Tags") %>% xml_text() %>% gsub('^"|$', "", .),
+#       Position=xml_find_first(x, ".//Point") %>% xml_attr("Position") 
+#     )
+#   })
+#  
+#   #### example

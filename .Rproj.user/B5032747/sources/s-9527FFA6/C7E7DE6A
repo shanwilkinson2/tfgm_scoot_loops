@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1617391091095.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2217739991",
+    "id" : "C7E7DE6A",
+    "lastKnownWriteTime" : 1617391207,
+    "last_content_update" : 1617391207826,
+    "path" : "~/tfgm_scoot_loops/get scootloop data.R",
+    "project_path" : "get scootloop data.R",
+    "properties" : {
+        "cursorPosition" : "14,57",
+        "scrollLine" : "0",
+        "tempName" : "Untitled2"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 7,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

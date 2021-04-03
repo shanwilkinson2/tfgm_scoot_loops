@@ -5,13 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "3313632048",
+    "hash" : "0",
     "id" : "6DC8FA52",
-    "lastKnownWriteTime" : 1617362205,
-    "last_content_update" : 1617362205,
+    "lastKnownWriteTime" : 1617401277,
+    "last_content_update" : 1617401287090,
     "path" : "~/tfgm_scoot_loops/get scootloop metadata.R",
     "project_path" : "get scootloop metadata.R",
     "properties" : {
+        "cursorPosition" : "19,0",
+        "scrollLine" : "0"
     },
     "read_only" : false,
     "read_only_alternatives" : [
