@@ -10,12 +10,15 @@ source("API key.R")
 headers <- add_headers("Ocp-Apim-Subscription-Key" = mykey)
 
 
-# get scoot data  
+# get scoot location data  
 
 # still need how to get them all or filtered or somehting
 
 # endpoint <- "https://api.tfgm.com/odata/ScootLoops?$expand=EndLocation,StartLocation&$top=100"
 endpoint <- "https://api.tfgm.com/odata/ScootLoops?$expand=StartLocation,EndLocation&$top=10"
+
+# get all
+endpoint <- "https://api.tfgm.com/odata/ScootLoops?$expand=StartLocation,EndLocation"
 
 response <- httr::GET(
   url = endpoint,

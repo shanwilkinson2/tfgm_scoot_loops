@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+  <edmx:DataServices>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="TfGM.Data">
+      <EntityType Name="Sign">
+        <Key>
+          <PropertyRef Name="Id"/>
+        </Key>
+        <Property Name="Id" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="SCN" Type="Edm.String"/>
+        <Property Name="Description" Type="Edm.String"/>
+        <Property Name="RoadName" Type="Edm.String"/>
+        <Property Name="LastUpdated" Type="Edm.DateTimeOffset"/>
+        <Property Name="Type" Type="TfGM.Data.SignType" Nullable="false"/>
+        <Property Name="LocationId" Type="Edm.Int32"/>
+        <NavigationProperty Name="SignMessages" Type="Collection(TfGM.Data.SignMessage)"/>
+        <NavigationProperty Name="Location" Type="TfGM.Data.Location">
+          <ReferentialConstraint Property="LocationId" ReferencedProperty="Id"/>
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="Carpark">
+        <Key>
+          <PropertyRef Name="Id"/>
+        </Key>
+        <Property Name="Id" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="State" Type="TfGM.Data.CarparkState"/>
+        <Property Name="SCN" Type="Edm.String"/>
+        <Property Name="Capacity" Type="Edm.Int32"/>
+        <Property Name="Description" Type="Edm.String"/>
+        <Property Name="Occupancy" Type="Edm.Int32"/>
+        <Property Name="LastUpdated" Type="Edm.DateTimeOffset"/>
+        <Property Name="LocationId" Type="Edm.Int32"/>
+        <NavigationProperty Name="Location" Type="TfGM.Data.Location">
+          <ReferentialConstraint Property="LocationId" ReferencedProperty="Id"/>
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="TrafficSignal">
+        <Key>
+          <PropertyRef Name="Id"/>
+        </Key>
+        <Property Name="Id" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="SCN" Type="Edm.String"/>
+        <Property Name="Description" Type="Edm.String"/>
+        <Property Name="DataSource" Type="Edm.String"/>
+        <Property Name="RoadName" Type="Edm.String"/>
+        <Property Name="DateCreated" Type="Edm.DateTimeOffset"/>
+        <Property Name="LocationID" Type="Edm.Int32"/>
+        <NavigationProperty Name="TrafficSignalFaults" Type="Collection(TfGM.Data.TrafficSignalFault)"/>
+        <NavigationProperty Name="Location" Type="TfGM.Data.Location"/>
+      </EntityType>
+      <EntityType Name="TrafficSignalFault">
+        <Key>
+          <PropertyRef Name="Id"/>
+        </Key>
+        <Property Name="Id" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="SCN" Type="Edm.String"/>
+        <Property Name="EquipmentId" Type="Edm.String"/>
+        <Property Name="EquipmentType" Type="Edm.String"/>
+        <Property Name="FaultDescription" Type="Edm.String"/>
+        <Property Name="Status" Type="Edm.String"/>
+        <Property Name="Urgency" Type="Edm.String"/>
+        <Property Name="AssignedTo" Type="Edm.String"/>
+        <Property Name="DateAssigned" Type="Edm.DateTimeOffset"/>
+        <Property Name="FaultTime" Type="Edm.DateTimeOffset"/>
+        <Property Name="Ignored" Type="Edm.Boolean"/>
+        <Property Name="DateCreated" Type="Edm.DateTimeOffset"/>
+        <Property Name="LastUpdated" Type="Edm.DateTimeOffset"/>
+        <Property Name="TrafficSignalId" Type="Edm.Int32"/>
+        <NavigationProperty Name="TrafficSignal" Type="TfGM.Data.TrafficSignal">
+          <ReferentialConstraint Property="TrafficSignalId" ReferencedProperty="Id"/>
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="TrafficEvent">
+        <Key>
+          <PropertyRef Name="Id"/>
+        </Key>
+        <Property Name="Id" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="SCN" Type="Edm.String"/>
+        <Property Name="Type" Type="Edm.String"/>
+        <Property Name="Description" Type="Edm.String"/>
+        <Property Name="LocationDescription" Type="Edm.String"/>
+        <Property Name="CreationDate" Type="Edm.DateTimeOffset"/>
+        <Property Name="ConfirmedDate" Type="Edm.DateTimeOffset"/>
+        <Property Name="ModifiedDate" Type="Edm.DateTimeOffset"/>
+        <Property Name="LanesAffectedTypeRefDescription" Type="Edm.String"/>
+        <Property Name="Severity" Type="Edm.String"/>
+        <Property Name="PhaseTypeRef" Type="Edm.String"/>
+        <Property Name="DiversionInForce" Type="Edm.Boolean"/>
+        <Property Name="AnticipatedStartDate" Type="Edm.DateTimeOffset"/>
+        <Property Name="AnticipatedEndDate" Type="Edm.DateTimeOffset"/>
+        <Property Name="StartDate" Type="Edm.DateTimeOffset"/>
+        <Property Name="EndDate" Type="Edm.DateTimeOffset"/>
+        <Property Name="TrafficSignals" Type="Edm.Boolean"/>
+        <Property Name="Contraflow" Type="Edm.Boolean"/>
+        <Property Name="Contractor" Type="Edm.String"/>
+        <Property Name="DiversionRoute" Type="Edm.String"/>
+        <Property Name="Organiser" Type="Edm.String"/>
+        <Property Name="VenueName" Type="Edm.String"/>
+        <Property Name="LocationId" Type="Edm.Int32"/>
+        <Property Name="TrafficeEventType" Type="TfGM.Data.TrafficEventType" Nullable="false"/>
+        <NavigationProperty Name="Location" Type="TfGM.Data.Location">
+          <ReferentialConstraint Property="LocationId" ReferencedProperty="Id"/>
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="JourneyTime">
+        <Key>
+          <PropertyRef Name="Id"/>
+        </Key>
+        <Property Name="Id" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="Description" Type="Edm.String"/>
+        <Property Name="SCN" Type="Edm.String"/>
+        <Property Name="LastUpdated" Type="Edm.DateTimeOffset"/>
+        <Property Name="TotalTravelTime" Type="Edm.Int32"/>
+        <Property Name="StartLocationId" Type="Edm.Int32"/>
+        <Property Name="EndLocationId" Type="Edm.Int32"/>
+        <Property Name="Type" Type="TfGM.Data.JourneyTimeType" Nullable="false"/>
+        <NavigationProperty Name="EndLocation" Type="TfGM.Data.Location"/>
+        <NavigationProperty Name="StartLocation" Type="TfGM.Data.Location"/>
+      </EntityType>
+      <EntityType Name="Detector">
+        <Key>
+          <PropertyRef Name="Id"/>
+        </Key>
+        <Property Name="Id" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="SCN" Type="Edm.String"/>
+        <Property Name="Description" Type="Edm.String"/>
+        <Property Name="DataSource" Type="Edm.String"/>
+        <Property Name="RoadName" Type="Edm.String"/>
+        <Property Name="LastUpdated" Type="Edm.DateTimeOffset"/>
+        <Property Name="LocationId" Type="Edm.Int32"/>
+        <NavigationProperty Name="DetectorDetails" Type="Collection(TfGM.Data.DetectorDetail)"/>
+        <NavigationProperty Name="Location" Type="TfGM.Data.Location">
+          <ReferentialConstraint Property="LocationId" ReferencedProperty="Id"/>
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="DetectorDetail">
+        <Key>
+          <PropertyRef Name="Id"/>
+        </Key>
+        <Property Name="Id" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="SCN" Type="Edm.String"/>
+        <Property Name="ActualSpeedLevel" Type="Edm.String"/>
+        <Property Name="RelativeSpeedLevel" Type="Edm.String"/>
+        <Property Name="ActualFlowLevel" Type="Edm.String"/>
+        <Property Name="RelativeFlowLevel" Type="Edm.String"/>
+        <Property Name="TotalFlow" Type="Edm.Int32"/>
+        <Property Name="Speed" Type="Edm.Int32"/>
+        <Property Name="LastUpdated" Type="Edm.DateTimeOffset"/>
+        <Property Name="DetectorId" Type="Edm.Int32"/>
+        <NavigationProperty Name="Detector" Type="TfGM.Data.Detector">
+          <ReferentialConstraint Property="DetectorId" ReferencedProperty="Id"/>
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="ScootLoop">
+        <Key>
+          <PropertyRef Name="Id"/>
+        </Key>
+        <Property Name="Id" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="SCN" Type="Edm.String"/>
+        <Property Name="Description" Type="Edm.String"/>
+        <Property Name="LastUpdated" Type="Edm.DateTimeOffset"/>
+        <Property Name="StartLocationId" Type="Edm.Int32"/>
+        <Property Name="EndLocationId" Type="Edm.Int32"/>
+        <NavigationProperty Name="ScootDetails" Type="Collection(TfGM.Data.ScootDetail)"/>
+        <NavigationProperty Name="EndLocation" Type="TfGM.Data.Location"/>
+        <NavigationProperty Name="StartLocation" Type="TfGM.Data.Location"/>
+      </EntityType>
+      <EntityType Name="ScootDetail">
+        <Key>
+          <PropertyRef Name="Id"/>
+        </Key>
+        <Property Name="Id" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="SCN" Type="Edm.String"/>
+        <Property Name="CongestionPercentage" Type="Edm.Int32"/>
+        <Property Name="CurrentFlow" Type="Edm.Int32"/>
+        <Property Name="AverageSpeed" Type="Edm.Int32"/>
+        <Property Name="LinkStatus" Type="Edm.Int32"/>
+        <Property Name="LinkTravelTime" Type="Edm.Int32"/>
+        <Property Name="ScootLoopsId" Type="Edm.Int32" Nullable="false"/>
+        <NavigationProperty Name="ScootLoop" Type="TfGM.Data.ScootLoop"/>
+      </EntityType>
+      <EntityType Name="SignMessage">
+        <Key>
+          <PropertyRef Name="Id"/>
+        </Key>
+        <Property Name="Id" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="SCN" Type="Edm.String"/>
+        <Property Name="MessageText" Type="Edm.String"/>
+        <Property Name="MessageTextSplit" Type="Edm.String"/>
+        <Property Name="SignSettingReason" Type="Edm.String"/>
+        <Property Name="LastUpdated" Type="Edm.DateTimeOffset"/>
+        <Property Name="LanternState" Type="Edm.Boolean"/>
+        <Property Name="Category" Type="Edm.String"/>
+        <Property Name="MessageName" Type="Edm.String"/>
+        <Property Name="SignId" Type="Edm.Int32"/>
+        <NavigationProperty Name="Sign" Type="TfGM.Data.Sign">
+          <ReferentialConstraint Property="SignId" ReferencedProperty="Id"/>
+        </NavigationProperty>
+      </EntityType>
+      <EntityType Name="Metrolink">
+        <Key>
+          <PropertyRef Name="Id"/>
+        </Key>
+        <Property Name="Id" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="Line" Type="Edm.String"/>
+        <Property Name="TLAREF" Type="Edm.String"/>
+        <Property Name="PIDREF" Type="Edm.String"/>
+        <Property Name="StationLocation" Type="Edm.String"/>
+        <Property Name="AtcoCode" Type="Edm.String"/>
+        <Property Name="Direction" Type="Edm.String"/>
+        <Property Name="Dest0" Type="Edm.String"/>
+        <Property Name="Carriages0" Type="Edm.String"/>
+        <Property Name="Status0" Type="Edm.String"/>
+        <Property Name="Wait0" Type="Edm.String"/>
+        <Property Name="Dest1" Type="Edm.String"/>
+        <Property Name="Carriages1" Type="Edm.String"/>
+        <Property Name="Status1" Type="Edm.String"/>
+        <Property Name="Wait1" Type="Edm.String"/>
+        <Property Name="Dest2" Type="Edm.String"/>
+        <Property Name="Carriages2" Type="Edm.String"/>
+        <Property Name="Status2" Type="Edm.String"/>
+        <Property Name="Wait2" Type="Edm.String"/>
+        <Property Name="Dest3" Type="Edm.String"/>
+        <Property Name="Carriages3" Type="Edm.String"/>
+        <Property Name="Status3" Type="Edm.String"/>
+        <Property Name="MessageBoard" Type="Edm.String"/>
+        <Property Name="Wait3" Type="Edm.String"/>
+        <Property Name="LastUpdated" Type="Edm.DateTimeOffset"/>
+      </EntityType>
+      <EntityType Name="Location">
+        <Key>
+          <PropertyRef Name="Id"/>
+        </Key>
+        <Property Name="Id" Type="Edm.Int32" Nullable="false"/>
+        <Property Name="LocationSpatial" Type="System.Data.Entity.Spatial.DbGeography"/>
+        <NavigationProperty Name="Carparks" Type="Collection(TfGM.Data.Carpark)"/>
+        <NavigationProperty Name="Detectors" Type="Collection(TfGM.Data.Detector)"/>
+        <NavigationProperty Name="JourneyTimes" Type="Collection(TfGM.Data.JourneyTime)"/>
+        <NavigationProperty Name="JourneyTimes1" Type="Collection(TfGM.Data.JourneyTime)"/>
+        <NavigationProperty Name="ScootLoops" Type="Collection(TfGM.Data.ScootLoop)"/>
+        <NavigationProperty Name="ScootLoops1" Type="Collection(TfGM.Data.ScootLoop)"/>
+        <NavigationProperty Name="Signs" Type="Collection(TfGM.Data.Sign)"/>
+        <NavigationProperty Name="TrafficSignals" Type="Collection(TfGM.Data.TrafficSignal)"/>
+      </EntityType>
+      <EnumType Name="SignType">
+        <Member Name="Unknown" Value="0"/>
+        <Member Name="Variable" Value="1"/>
+        <Member Name="CarparkVariable" Value="2"/>
+      </EnumType>
+      <EnumType Name="CarparkState">
+        <Member Name="Faulty" Value="1"/>
+        <Member Name="Spaces" Value="2"/>
+        <Member Name="AlmostFull" Value="3"/>
+        <Member Name="Full" Value="4"/>
+        <Member Name="Closed" Value="5"/>
+        <Member Name="Unknown" Value="6"/>
+        <Member Name="Open" Value="7"/>
+      </EnumType>
+      <EnumType Name="JourneyTimeType">
+        <Member Name="Unknown" Value="0"/>
+        <Member Name="Journey" Value="1"/>
+        <Member Name="RouteJourney" Value="2"/>
+      </EnumType>
+      <EnumType Name="TrafficEventType">
+        <Member Name="Unknown" Value="0"/>
+        <Member Name="Incident" Value="1"/>
+        <Member Name="Accident" Value="2"/>
+        <Member Name="Roadwork" Value="3"/>
+        <Member Name="VenueEvent" Value="4"/>
+      </EnumType>
+    </Schema>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="System.Data.Entity.Spatial">
+      <ComplexType Name="DbGeography">
+        <Property Name="Geography" Type="System.Data.Entity.Spatial.DbGeographyWellKnownValue"/>
+      </ComplexType>
+      <ComplexType Name="DbGeographyWellKnownValue">
+        <Property Name="CoordinateSystemId" Type="Edm.Int32"/>
+        <Property Name="WellKnownText" Type="Edm.String"/>
+        <Property Name="WellKnownBinary" Type="Edm.Binary"/>
+      </ComplexType>
+    </Schema>
+    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Tfgm">
+      <Function Name="ByArea" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(TfGM.Data.Carpark)"/>
+        <Parameter Name="Latitude" Type="Edm.Double" Nullable="false"/>
+        <Parameter Name="Longitude" Type="Edm.Double" Nullable="false"/>
+        <Parameter Name="RadiusInMeters" Type="Edm.Double" Nullable="false"/>
+        <ReturnType Type="Collection(TfGM.Data.Carpark)"/>
+      </Function>
+      <EntityContainer Name="DefaultContainer">
+        <EntitySet Name="Signs" EntityType="TfGM.Data.Sign">
+          <NavigationPropertyBinding Path="SignMessages" Target="SignMessage"/>
+          <NavigationPropertyBinding Path="Location" Target="Locations"/>
+        </EntitySet>
+        <EntitySet Name="Carparks" EntityType="TfGM.Data.Carpark">
+          <NavigationPropertyBinding Path="Location" Target="Locations"/>
+        </EntitySet>
+        <EntitySet Name="TrafficSignals" EntityType="TfGM.Data.TrafficSignal">
+          <NavigationPropertyBinding Path="TrafficSignalFaults" Target="TrafficSignalFaults"/>
+          <NavigationPropertyBinding Path="Location" Target="Locations"/>
+        </EntitySet>
+        <EntitySet Name="TrafficSignalFaults" EntityType="TfGM.Data.TrafficSignalFault">
+          <NavigationPropertyBinding Path="TrafficSignal" Target="TrafficSignals"/>
+        </EntitySet>
+        <EntitySet Name="Roadworks" EntityType="TfGM.Data.TrafficEvent">
+          <NavigationPropertyBinding Path="Location" Target="Locations"/>
+        </EntitySet>
+        <EntitySet Name="Incidents" EntityType="TfGM.Data.TrafficEvent">
+          <NavigationPropertyBinding Path="Location" Target="Locations"/>
+        </EntitySet>
+        <EntitySet Name="Accidents" EntityType="TfGM.Data.TrafficEvent">
+          <NavigationPropertyBinding Path="Location" Target="Locations"/>
+        </EntitySet>
+        <EntitySet Name="VenueEvents" EntityType="TfGM.Data.TrafficEvent">
+          <NavigationPropertyBinding Path="Location" Target="Locations"/>
+        </EntitySet>
+        <EntitySet Name="JourneyTimes" EntityType="TfGM.Data.JourneyTime">
+          <NavigationPropertyBinding Path="EndLocation" Target="Locations"/>
+          <NavigationPropertyBinding Path="StartLocation" Target="Locations"/>
+        </EntitySet>
+        <EntitySet Name="Detectors" EntityType="TfGM.Data.Detector">
+          <NavigationPropertyBinding Path="DetectorDetails" Target="DetectorDetails"/>
+          <NavigationPropertyBinding Path="Location" Target="Locations"/>
+        </EntitySet>
+        <EntitySet Name="DetectorDetails" EntityType="TfGM.Data.DetectorDetail">
+          <NavigationPropertyBinding Path="Detector" Target="Detectors"/>
+        </EntitySet>
+        <EntitySet Name="ScootLoops" EntityType="TfGM.Data.ScootLoop">
+          <NavigationPropertyBinding Path="ScootDetails" Target="ScootDetails"/>
+          <NavigationPropertyBinding Path="EndLocation" Target="Locations"/>
+          <NavigationPropertyBinding Path="StartLocation" Target="Locations"/>
+        </EntitySet>
+        <EntitySet Name="ScootDetails" EntityType="TfGM.Data.ScootDetail">
+          <NavigationPropertyBinding Path="ScootLoop" Target="ScootLoops"/>
+        </EntitySet>
+        <EntitySet Name="SignMessage" EntityType="TfGM.Data.SignMessage">
+          <NavigationPropertyBinding Path="Sign" Target="Signs"/>
+        </EntitySet>
+        <EntitySet Name="Metrolinks" EntityType="TfGM.Data.Metrolink"/>
+        <EntitySet Name="Locations" EntityType="TfGM.Data.Location">
+          <NavigationPropertyBinding Path="Carparks" Target="Carparks"/>
+          <NavigationPropertyBinding Path="Detectors" Target="Detectors"/>
+          <NavigationPropertyBinding Path="JourneyTimes" Target="JourneyTimes"/>
+          <NavigationPropertyBinding Path="JourneyTimes1" Target="JourneyTimes"/>
+          <NavigationPropertyBinding Path="ScootLoops" Target="ScootLoops"/>
+          <NavigationPropertyBinding Path="ScootLoops1" Target="ScootLoops"/>
+          <NavigationPropertyBinding Path="Signs" Target="Signs"/>
+          <NavigationPropertyBinding Path="TrafficSignals" Target="TrafficSignals"/>
+        </EntitySet>
+      </EntityContainer>
+    </Schema>
+  </edmx:DataServices>
+</edmx:Edmx>

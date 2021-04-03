@@ -29,11 +29,21 @@ scoot_meta2 <- scoot_meta %>%
   # convert text to xml
   read_xml()
 
-scoot_meta2
+scoot_meta2 %>%
   xml_children() %>%
   xml_children() %>%
-    [1]
+  xml_children()[9:10]
 
+scoot_meta2 %>%
+  xml_children() %>%
+  xml_children() %>%
+  xml_children() %>%
+  xml_attrs()
+
+scoot_meta2 %>%
+  xml_structure()
+
+write_xml(scoot_meta2, "scoot meta.xml")
 
 # scoot_meta2 <- xmlParse(scoot_meta)
 
