@@ -9,7 +9,7 @@ leaflet(scoot_loc2) %>%
   addProviderTiles("Stamen.TonerLite") %>%
   #addResetMapButton %>%
   addCircleMarkers(radius = 3, color = "blue", 
-                   popup = ~glue("Last updated: {format(last_updated, '%d/%m/%y')} <br> ID: {id} <br> Desription: {description} <br> (end of scoot)")
+                   popup = ~glue("Last updated: {format(last_updated, '%d/%m/%y')} <br> ID: {id} <br> {scn} <br> Desription: {description} <br> (end of scoot)")
   ) %>%
   addControl(glue("<b>Location of GM scootloops</b>"), 
              position = "topright")

@@ -39,6 +39,9 @@ scoot_loc2 <- scoot_loc %>%
   mutate(last_updated = as.POSIXct(last_updated)) %>%
   # missing locations don't seem to be being updated anyway
   filter(!is.na(start_location_point)) %>%
+  # scn seems to link junctions, but just with a different last letter. 
+  # so remove last letter
+  mutate(junction = str_sub(scn, 1, -2)) %>%
   # well known text ie common text format for points
   # works with col num but not name. needs missings deleted & unnesting
   # col 8 = end location. All scoots point towards the junction, so end is at the junction
@@ -55,3 +58,19 @@ chorley_new_scoots_start <- chorley_new_scoots_end %>%
   # well known text ie common text format for points
   # works with col num but not name. needs missings deleted & unnesting
   st_as_sf(wkt = 7, crs = 4326) # lat/ long
+
+
+# how many scoots does each juntion have?
+scoot_loc2 %>%
+  st_drop_geometry() %>%
+  # only scoots that have been updated in the last 2 weeks
+  filter(last_updated >= max(last_updated - lubridate::weeks(2))) %>%
+  group_by(junction) %>%
+  summarise(num_scoots = n()) %>%
+  ungroup() %>%
+  summarise(   min_scoots = min(num_scoots), 
+            max_scoots = max(num_scoots),
+            median_scoots = median(num_scoots),
+            cenile_25_scoots = quantile(num_scoots, 0.25),
+            cenile_75_scoots = quantile(num_scoots, 0.75)
+            )
