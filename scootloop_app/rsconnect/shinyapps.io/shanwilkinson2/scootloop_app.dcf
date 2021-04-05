@@ -1,0 +1,12 @@
+name: scootloop_app
+title: scootloop_app
+username:
+account: shanwilkinson2
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3912352
+bundleId: 4434331
+url: https://shanwilkinson2.shinyapps.io/scootloop_app/
+when: 1617647039.54193
+asMultiple: FALSE
+asStatic: FALSE
