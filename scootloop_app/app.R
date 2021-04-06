@@ -113,7 +113,7 @@ ui <- fluidPage(
                             p("Link status = 0 - normal, 1 - suspect"),
                             p("Link travel time = in seconds"),
                             p("When link travel time is 0, ie arm is running on all red phase because of no vehicles, average speed defaults to 50mph"),
-                            p("Looks like there might be some other defaulting to 50mph when speeds are low.")
+                            p("Looks like there might be some other defaulting to 50mph when flows are low.")
                         ),
                         tabPanel("About",
                                  p("This data contains details of SCOOT loops on highways in Greater Manchester."),
