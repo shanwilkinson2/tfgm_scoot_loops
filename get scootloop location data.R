@@ -32,6 +32,14 @@ scoot_loc <- fromJSON(content(response, "text"))$value %>%
 scoot_loc2 <- scoot_loc %>% 
   mutate(start_location_point = start_location$LocationSpatial$Geography$WellKnownText,
          end_location_point = end_location$LocationSpatial$Geography$WellKnownText) %>%
+  mutate(scoot_linestring = paste0(
+    "LINESTRING (",
+    stringr::str_sub(start_location_point, 8,-2),
+    ", ",
+    stringr::str_sub(end_location_point, 8,-2),
+    ")"
+    )
+  ) %>%
   select(-c(start_location, end_location)) %>%
   # make date format
   mutate(last_updated = as.POSIXct(last_updated, format = "%Y-%m-%dT%H:%M:%OSZ")) %>%

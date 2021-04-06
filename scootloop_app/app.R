@@ -96,10 +96,10 @@ ui <- fluidPage(
                                  h4("All scoots run towards the junction."),
                                  p("Current flow (in Passenger Car Units) & average speed are for vehicles in 5 min periods."),
                                  p("Link travel time - seconds"),
+                                 p("When link travel time is 0, ie arm is all red phase because of no vehicles, average speed defaults to 50mph. Adjusted average speed shows this as NA instead."),
                                  p("Congestion percentage = congestion is identified when a detector placed where the end of a normal queue at red would be has been continuously occupied for 4 secs."),
                                  p("Once this has occurred, congestion percentage is calculated using: num secs detector occupied in the cycle * 100 / cycle time in secs"),
-                                 p("Link status = 0 - normal, 1 - suspect"),
-                                 p("Is there some defaulting to 50mph when flows are low?")
+                                 p("Link status = 0 - normal, 1 - suspect")
                                  ),
                         tabPanel("Selected scoots table ",
                                   DT::DTOutput("selected_jct_table"),
@@ -111,7 +111,9 @@ ui <- fluidPage(
                             p("Current flow = vehicles (passenger car units) in 5 mins (I think)"),
                             p("Average speed = average speed in 5 mins (I think). Measured in KMPH so converted to MPH as well."),
                             p("Link status = 0 - normal, 1 - suspect"),
-                            p("Link travel time = in seconds")
+                            p("Link travel time = in seconds"),
+                            p("When link travel time is 0, ie arm is running on all red phase because of no vehicles, average speed defaults to 50mph"),
+                            p("Looks like there might be some other defaulting to 50mph when speeds are low.")
                         ),
                         tabPanel("About",
                                  p("This data contains details of SCOOT loops on highways in Greater Manchester."),
@@ -147,9 +149,10 @@ server <- function(input, output) {
         addProviderTiles("Stamen.TonerLite") %>%
             addResetMapButton %>%
             addCircleMarkers(data = selected_jct_data(), radius = 5, color = "red", 
-                             popup = ~glue::glue("Scoot ID: {Id}<br>Scoot description: {Description}<br>Congestion percentage: {CongestionPercentage}<br>Current flow: {CurrentFlow}<br>Average speed: {average_speed_mph}mph<br>Link status: {LinkStatus}<br>Link travel time: {LinkTravelTime} secs<br>(start of scoot)")
+                             popup = ~glue::glue("Scoot ID: {Id}<br>Scoot description: {Description}<br>Congestion percentage: {CongestionPercentage}<br>Current flow: {CurrentFlow}<br>Adjusted average speed: {adjusted_average_speed_mph} mph<br>Link status: {LinkStatus}<br>Link travel time: {LinkTravelTime} secs<br>(start of scoot)")
             ) %>%
-            addControl(glue::glue("<b>Selected junction map</b>"), 
+            addPolylines(data = selected_jct_linestring(), color = "orange") %>%
+            addControl(glue::glue("<b>Selected junction map</b><br>Click on points for more detail"), 
                        position = "topright")
     })
     
@@ -166,16 +169,37 @@ server <- function(input, output) {
         scoot_dat <- fromJSON(content(response, "text"))$value %>%
             # get geography
             mutate(start_location_point = StartLocation$LocationSpatial$Geography$WellKnownText,
-                   end_location_point = EndLocation$LocationSpatial$Geography$WellKnownText) %>%
+                   end_location_point = EndLocation$LocationSpatial$Geography$WellKnownText,
+                   scoot_linestring = paste0(
+                       "LINESTRING (",
+                       stringr::str_sub(start_location_point, 8,-2),
+                       ", ",
+                       stringr::str_sub(end_location_point, 8,-2),
+                       ")"
+                   )
+            ) %>%
             select(-c(Id, SCN, StartLocationId, EndLocationId, StartLocation, EndLocation)) %>%
             # select(ScootDetails) %>%
             tidyr::unnest(cols = ScootDetails) %>%
             mutate(LastUpdated = as.POSIXct(LastUpdated, format = "%Y-%m-%dT%H:%M:%OSZ")) %>%
             rename(average_speed_kmph = AverageSpeed) %>%
-            mutate(average_speed_mph = round(average_speed_kmph * 0.62137119223733, 0)) %>%
+            mutate(average_speed_mph = round(average_speed_kmph * 0.62137119223733, 0),
+                   # when link travel time is 0 (ie arm has all red phase because of no vehicles)
+                   # average speed defaults to 50mph. Create adjusted average speed to sort this out
+                   adjusted_average_speed_mph = ifelse(LinkTravelTime == 0, NA, average_speed_mph)
+                   ) %>%
             # well known text ie common text format for points
             # works with col num but not name. needs missings deleted & unnesting
             filter(!is.na(start_location_point)) %>%
+            st_as_sf(wkt = 11, crs = 4326) # lat/ long
+    })
+    
+    selected_jct_linestring <- reactive({
+        selected_jct_data() %>%
+            st_drop_geometry() %>%
+            select(-end_location_point) %>%
+            # well known text ie common text format for points
+            # works with col num but not name. needs missings deleted & unnesting
             st_as_sf(wkt = 11, crs = 4326) # lat/ long
     })
     

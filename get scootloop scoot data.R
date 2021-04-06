@@ -30,7 +30,15 @@ response <- httr::GET(
 scoot_dat <- fromJSON(content(response, "text"))$value %>%
   # get geography
   mutate(start_location_point = StartLocation$LocationSpatial$Geography$WellKnownText,
-         end_location_point = EndLocation$LocationSpatial$Geography$WellKnownText) %>%
+         end_location_point = EndLocation$LocationSpatial$Geography$WellKnownText,
+         scoot_linestring = paste0(
+           "LINESTRING (",
+           stringr::str_sub(start_location_point, 8,-2),
+           ", ",
+           stringr::str_sub(end_location_point, 8,-2),
+           ")"
+           )
+         ) %>%
   select(-c(Id, SCN, StartLocationId, EndLocationId, StartLocation, EndLocation)) %>%
   # select(ScootDetails) %>%
   tidyr::unnest(cols = ScootDetails) %>%
@@ -40,6 +48,13 @@ scoot_dat <- fromJSON(content(response, "text"))$value %>%
   # well known text ie common text format for points
   # works with col num but not name. needs missings deleted & unnesting
   filter(!is.na(start_location_point)) %>%
+  st_as_sf(wkt = 11, crs = 4326) # lat/ long
+
+scoot_dat_linestring <- scoot_dat %>%
+  st_drop_geometry() %>%
+  select(-end_location_point) %>%
+  # well known text ie common text format for points
+  # works with col num but not name. needs missings deleted & unnesting
   st_as_sf(wkt = 11, crs = 4326) # lat/ long
 
 # volume & speed is average over 5 mins (in Hull at least)
