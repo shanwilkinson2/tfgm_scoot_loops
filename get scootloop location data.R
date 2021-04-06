@@ -34,7 +34,7 @@ scoot_loc2 <- scoot_loc %>%
          end_location_point = end_location$LocationSpatial$Geography$WellKnownText) %>%
   select(-c(start_location, end_location)) %>%
   # make date format
-  mutate(last_updated = as.POSIXct(last_updated)) %>%
+  mutate(last_updated = as.POSIXct(last_updated, format = "%Y-%m-%dT%H:%M:%OSZ")) %>%
   # missing locations don't seem to be being updated anyway
   filter(!is.na(start_location_point)) %>%
   # scn seems to link junctions, but just with a different last letter. 
