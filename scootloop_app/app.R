@@ -163,9 +163,6 @@ server <- function(input, output) {
     })
     
     # selected junction map
-    
-    # {names(indicator_names[indicator_names==input$select_indicator])}
-    
     output$selected_jct_map <- renderLeaflet({
         leaflet() %>%
         addProviderTiles("Stamen.TonerLite") %>%
@@ -227,6 +224,7 @@ server <- function(input, output) {
             st_as_sf(wkt = 11, crs = 4326) # lat/ long
     })
     
+    # pivoted data to colour for selected junction map points
     selected_jct_mapdata <- reactive({
         selected_jct_data() %>%
             # pivot_longer doesn't work on spatial df
@@ -237,6 +235,7 @@ server <- function(input, output) {
             filter(indicator == input$select_indicator)
     })
     
+    # pivoted data to colour for selected junction map lines
     selected_jct_linestring <- reactive({
         selected_jct_mapdata() %>%
             st_drop_geometry() %>%
@@ -258,11 +257,8 @@ server <- function(input, output) {
                    )
         },
         rownames = FALSE)
-    
-    # name of selected indicator
-    output$selected_indicator <- reactive({input$select_indicator})
 
-    
+    # palette for selected juntion map 
     map_pal <- reactive({
         colorNumeric(palette = "YlOrRd",
                      domain = c(
@@ -272,9 +268,7 @@ server <- function(input, output) {
                                100,
                                max(selected_jct_mapdata()$value, na.rm = TRUE)
                         )
-                        # min(st_drop_geometry(selected_jct_data()[input$select_indicator]), na.rm = TRUE),
-                        # max(st_drop_geometry(selected_jct_data()["CurrentFlow"]), na.rm = TRUE)
-                                ),
+                        ),
                      na.color = "grey"
         )
     })
