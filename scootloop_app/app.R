@@ -1,13 +1,6 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
 
 library(shiny)
+library(shinydashboard)
 library(dplyr)
 library(httr)
 library(jsonlite)
@@ -74,14 +67,22 @@ library(leaflet.extras)
 ###############################
            
 # Define UI for app
-ui <- fluidPage(
+ui <- dashboardPage(skin = "purple",
 
     # Application title
-    titlePanel("Scootloops"),
+    dashboardHeader(title = "Scootloops"),
 
     # Sidebar with a slider input for number of bins 
-    sidebarLayout(
-        sidebarPanel(
+#    sidebarLayout(
+        dashboardSidebar(
+            # tab selector menu
+            sidebarMenu(
+                menuItem("All junctions map", tabName = "all_map"),
+                menuItem("Selected junction map", tabName = "selected_map"),
+                menuItem("Selected junction table", tabName = "selected_table"),
+                menuItem("About", tabName = "about_app")
+                ),
+            
             # dropdown. selectize = TRUE lets you type in
             selectInput(
                 inputId = "select_junction",
@@ -106,45 +107,45 @@ ui <- fluidPage(
             )
         ),
 
-        # Show a plot of the generated distribution
-        mainPanel(
-            tabsetPanel(type = "tabs",
-                        tabPanel("All scoots map",
-                                 leafletOutput("scoot_location_plot")
-                                 ),
-                        tabPanel("Selected scoots map",
-                                 leafletOutput("selected_jct_map"),
-                                 h4("All scoots run towards the junction."),
-                                 p("When link travel time is 0, ie arm is all red phase because of no vehicles, average speed defaults to 50mph. Adjusted average speed shows this as NA instead."),
-                                 p("Speed seems to sometimes default to 50mph when flows are low."),
-                                 p("Congestion percentage = congestion is identified when a detector placed where the end of a normal queue at red would be has been continuously occupied for 4 secs."),
-                                 p("Once this has occurred, congestion percentage is calculated using: num secs detector occupied in the cycle * 100 / cycle time in secs")
-                                 ),
-                        tabPanel("Selected scoots table ",
-                                  DT::DTOutput("selected_jct_table"),
-                            h3("Explanation of fields"),
-                            p("Id, SCN = id numbers for the scootloop"),
-                            p("Description = SCN or a written description of the location"),
-                            p("Congestion percentage = congestion is identified when a detector placed where the end of a normal queue at red would be has been continuously occupied for 4 secs."),
-                            p("Once this has occurred, congestion percentage is calculated using: num secs detector occupied in the cycle * 100 / cycle time in secs"),
-                            p("Current flow = vehicles (passenger car units) in 5 mins."),
-                            p("Average speed = average speed in 5 mins. Measured in KMPH so converted to MPH."),
-                            p("Link status = 0 - normal, 1 - suspect"),
-                            p("Link travel time = in seconds"),
-                            p("When link travel time is 0, ie arm is running on all red phase because of no vehicles, average speed defaults to 50mph"),
-                            p("Looks like there might be some other defaulting to 50mph when flows are low.")
-                        ),
-                        tabPanel("About",
-                                 p("This data contains details of SCOOT loops on highways in Greater Manchester."),
-                                 p("SCOOT is a measure of congestion at traffic signals."),
-                                 p("Contains Transport for Greater Manchester data. Contains OS data © Crown copyright and database right 2016."),
-                                 a("TfGM", href = "https://developer.tfgm.com/developer", target = "_blank"),
-                                 p("Code for this app is on my github."),
-                                 a("Github", href = "https://github.com/shanwilkinson2/tfgm_scoot_loops", target = "_blank")
-                                 )
+        # 
+        dashboardBody(
+           tabItems(
+                tabItem(tabName = "all_map",
+                         leafletOutput("scoot_location_plot")
+                         ),
+                tabItem(tabName = "selected_map",
+                         leafletOutput("selected_jct_map"),
+                         h4("All scoots run towards the junction."),
+                         p("When link travel time is 0, ie arm is all red phase because of no vehicles, average speed defaults to 50mph. Adjusted average speed shows this as NA instead."),
+                         p("Speed seems to sometimes default to 50mph when flows are low."),
+                         p("Congestion percentage = congestion is identified when a detector placed where the end of a normal queue at red would be has been continuously occupied for 4 secs."),
+                         p("Once this has occurred, congestion percentage is calculated using: num secs detector occupied in the cycle * 100 / cycle time in secs")
+                         ),
+                tabItem(tabName = "selected_table",
+                    DT::DTOutput("selected_jct_table"),
+                    h3("Explanation of fields"),
+                    p("Id, SCN = id numbers for the scootloop"),
+                    p("Description = SCN or a written description of the location"),
+                    p("Congestion percentage = congestion is identified when a detector placed where the end of a normal queue at red would be has been continuously occupied for 4 secs."),
+                    p("Once this has occurred, congestion percentage is calculated using: num secs detector occupied in the cycle * 100 / cycle time in secs"),
+                    p("Current flow = vehicles (passenger car units) in 5 mins."),
+                    p("Average speed = average speed in 5 mins. Measured in KMPH so converted to MPH."),
+                    p("Link status = 0 - normal, 1 - suspect"),
+                    p("Link travel time = in seconds"),
+                    p("When link travel time is 0, ie arm is running on all red phase because of no vehicles, average speed defaults to 50mph"),
+                    p("Looks like there might be some other defaulting to 50mph when flows are low.")
+                ),
+                tabItem(tabName = "about_app",
+                         p("This data contains details of SCOOT loops on highways in Greater Manchester."),
+                         p("SCOOT is a measure of congestion at traffic signals."),
+                         p("Contains Transport for Greater Manchester data. Contains OS data © Crown copyright and database right 2016."),
+                         a("TfGM", href = "https://developer.tfgm.com/developer", target = "_blank"),
+                         p("Code for this app is on my github."),
+                         a("Github", href = "https://github.com/shanwilkinson2/tfgm_scoot_loops", target = "_blank")
+                         )
             )
         )
-    )
+    #)
 )
 
 # Define server logic 
@@ -202,8 +203,9 @@ server <- function(input, output) {
                        ")"
                    )
             ) %>%
-            select(-c(Id, SCN, StartLocationId, EndLocationId, StartLocation, EndLocation)) %>%
-            # select(ScootDetails) %>%
+            # remove these cols as have already dealt with them above
+            select(-c(Id, SCN, StartLocationId, EndLocationId, 
+                     StartLocation, EndLocation)) %>%
             tidyr::unnest(cols = ScootDetails) %>%
             mutate(LastUpdated = as.POSIXct(LastUpdated, format = "%Y-%m-%dT%H:%M:%OSZ"),
                    scoot_letter = stringr::str_sub(SCN, -1, nchar(SCN))
