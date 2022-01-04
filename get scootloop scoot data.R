@@ -11,7 +11,7 @@ headers <- add_headers("Ocp-Apim-Subscription-Key" = mykey)
 
 # chorley new scoots
 chorley_new <- c(2338, 2335, 2334, 2336) #2337 seems to have been discontinued
-
+chorley_new <- c(2338)
 
 #2338 = bottom of chorley new
 # won't work with spaces in web address, replace with +
@@ -20,7 +20,7 @@ chorley_new <- c(2338, 2335, 2334, 2336) #2337 seems to have been discontinued
 # endpoint <- "https://api.tfgm.com/odata/ScootLoops?$expand=ScootDetails&$filter=Id+eq+2338+Or+Id+eq+2335&$top=10"
 # endpoint <- "https://api.tfgm.com/odata/ScootLoops?$expand=ScootDetails&$filter=startswith(SCN,'N53211')&$top=10"
 endpoint <- "https://api.tfgm.com/odata/ScootLoops?$expand=StartLocation,EndLocation,ScootDetails&$filter=startswith(SCN,'N53211')"
-# endpoint <- glue::glue("https://api.tfgm.com/odata/ScootLoops?$expand=ScootDetails&$filter=Id{paste0(chorley_new, collapse = 'Or')})")
+ endpoint <- glue::glue("https://api.tfgm.com/odata/ScootLoops?$expand=ScootDetails&$filter=Id{paste0(chorley_new, collapse = 'Or')})")
 
 response <- httr::GET(
   url = endpoint,

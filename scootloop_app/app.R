@@ -115,6 +115,7 @@ ui <- dashboardPage(skin = "purple",
                          ),
                 tabItem(tabName = "selected_map",
                          leafletOutput("selected_jct_map"),
+                         textOutput("selected_junction"),
                          h4("All scoots run towards the junction."),
                          p("When link travel time is 0, ie arm is all red phase because of no vehicles, average speed defaults to 50mph. Adjusted average speed shows this as NA instead."),
                          p("Speed seems to sometimes default to 50mph when flows are low."),
@@ -181,10 +182,12 @@ server <- function(input, output) {
                        position = "topright")
     })
     
-    # reactive dataset for seleted junction
+    # reactive dataset for selected junction
     selected_jct_data <- reactive({
         # endpoint for selected junction
         endpoint <- glue::glue("https://api.tfgm.com/odata/ScootLoops?$expand=StartLocation,EndLocation,ScootDetails&$filter=startswith(SCN,'{input$select_junction}')")
+        # endpoint for multiple junctions
+        #endpoint <- glue::glue("https://api.tfgm.com/odata/ScootLoops?$expand=StartLocation,EndLocation,ScootDetails&$filter=startswith(SCN,'{paste0(input$select_junction, collapse = 'Or')}')") 
         # pull data
         response <- httr::GET(
             url = endpoint,
