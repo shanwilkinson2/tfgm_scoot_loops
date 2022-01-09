@@ -89,7 +89,8 @@ ui <- dashboardPage(skin = "purple",
                 label = "Select junction:",
                 choices = all_junctions,
                 selected = "N53211",
-                selectize = TRUE
+                selectize = TRUE,
+                multiple = TRUE
             ),
             em("(Delete selected junction to type & search)"),
             p("Junction numbers on map"),
@@ -115,7 +116,6 @@ ui <- dashboardPage(skin = "purple",
                          ),
                 tabItem(tabName = "selected_map",
                          leafletOutput("selected_jct_map"),
-                         textOutput("selected_junction"),
                          h4("All scoots run towards the junction."),
                          p("When link travel time is 0, ie arm is all red phase because of no vehicles, average speed defaults to 50mph. Adjusted average speed shows this as NA instead."),
                          p("Speed seems to sometimes default to 50mph when flows are low."),
@@ -169,7 +169,8 @@ server <- function(input, output) {
         leaflet() %>%
         addProviderTiles("Stamen.TonerLite") %>%
             addResetMapButton %>%
-            addCircleMarkers(data = selected_jct_mapdata(), radius = 8, 
+            addCircleMarkers(data = selected_jct_mapdata(), 
+                             radius = 8, 
                              fillColor = ~map_pal()(value), 
                              weight = 2,
                              fillOpacity = 0.8, color = "black", 
@@ -179,15 +180,25 @@ server <- function(input, output) {
                          popup = ~glue::glue("Scoot letter: {scoot_letter}<br>{indicator_names[indicator_names$varname==input$select_indicator,'prettyname']}: {ifelse(indicator != 'LinkStatus', value, ifelse(value == 0, 'Normal', 'Suspect'))}{indicator_names[indicator_names$varname==input$select_indicator,'suffix']}<br>(length of scoot)")
             ) %>%
             addControl(glue::glue("<b>Selected junction map</b><br>Click on points for more detail"), 
-                       position = "topright")
+                       position = "topright") %>%
+            addLegend(pal = map_pal(),
+                      values = selected_jct_mapdata()$value,
+                      position = "bottomleft",
+                      title = paste(indicator_names[indicator_names$varname == input$select_indicator, 2],
+                                    "<br>",
+                                    indicator_names[indicator_names$varname == input$select_indicator, "suffix"])
+                      )
     })
     
     # reactive dataset for selected junction
     selected_jct_data <- reactive({
-        # endpoint for selected junction
-        endpoint <- glue::glue("https://api.tfgm.com/odata/ScootLoops?$expand=StartLocation,EndLocation,ScootDetails&$filter=startswith(SCN,'{input$select_junction}')")
         # endpoint for multiple junctions
-        #endpoint <- glue::glue("https://api.tfgm.com/odata/ScootLoops?$expand=StartLocation,EndLocation,ScootDetails&$filter=startswith(SCN,'{paste0(input$select_junction, collapse = 'Or')}')") 
+        myfilter <- paste0("startswith(SCN,'", 
+                           paste0(input$select_junction,
+                                  collapse = "')Or+startswith(SCN,'"
+                           ),
+                           "')")
+        endpoint <- paste0("https://api.tfgm.com/odata/ScootLoops?$expand=StartLocation,EndLocation,ScootDetails&$filter=", myfilter)
         # pull data
         response <- httr::GET(
             url = endpoint,
@@ -267,11 +278,11 @@ server <- function(input, output) {
     map_pal <- reactive({
         colorNumeric(palette = "YlOrRd",
                      domain = c(
-                        min(selected_jct_mapdata()$value, na.rm = TRUE),
+                         min(selected_jct_mapdata()$value, na.rm = TRUE),
                         # when all values are 0 to get them to display as low rather than mid
                         ifelse(sum(selected_jct_mapdata()$value ==0),
                                100,
-                               max(selected_jct_mapdata()$value, na.rm = TRUE)
+                            max(selected_jct_mapdata()$value, na.rm = TRUE)
                         )
                         ),
                      na.color = "grey"

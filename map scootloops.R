@@ -97,34 +97,64 @@ map_pal <-   colorNumeric(palette = "YlOrRd",
     url = "https://api.tfgm.com/odata/ScootLoops?$expand=StartLocation,EndLocation",
     config = headers)
   
-  # parse as text
-  scoot_loc2 <- fromJSON(content(response, "text"))$value %>%
-    janitor::clean_names() %>%
-    # start & end points are each in thier little spatial data frame
-    mutate(start_location_point = start_location$LocationSpatial$Geography$WellKnownText,
-           end_location_point = end_location$LocationSpatial$Geography$WellKnownText) %>%
-    select(-c(start_location, end_location)) %>%
-    # make date format
-    mutate(last_updated = as.POSIXct(last_updated, format = "%Y-%m-%dT%H:%M:%OSZ")) %>%
-    # missing locations don't seem to be being updated anyway
-    filter(!is.na(start_location_point)) %>%
-    # scn seems to link junctions, but just with a different last letter. 
-    # so remove last letter
-    mutate(junction = stringr::str_sub(scn, 1, -2)) %>%
-    # well known text ie common text format for points
-    # works with col num but not name. needs missings deleted & unnesting
-    # col 8 = end location. All scoots point towards the junction, so end is at the junction
-    st_as_sf(wkt = 8, crs = 4326) # lat/ long
-
-  # get list of unique junctions (from SCN minus last character)  
-  all_junctions <- scoot_loc2 %>% 
-    # drop geometry
-    st_drop_geometry() %>%
-    # last updated seems to be a system change rather than live detector so leave all in 
-    select(junction) %>%
-    arrange(junction) %>%
-    unique()    
-
-  library(crosstalk)
+  # chorley new scoots
+  chorley_new <- c("N53211", "N53141", "N53222") #2337 seems to have been discontinued
+  chorley_new <- c("N53211")
+  myfilter <- paste0("startswith(SCN,'", 
+    paste0(chorley_new,
+    collapse = "')Or+startswith(SCN,'"
+    ),
+    "')")
+  endpoint <- paste0("https://api.tfgm.com/odata/ScootLoops?$expand=StartLocation,EndLocation,ScootDetails&$filter=", myfilter)
   
-  shared_data <- SharedData$new(scoot_loc2, key = scn)  
+ # selected_jct_data <- (#reactive({
+    # # endpoint for selected junction
+    # endpoint <- glue::glue("https://api.tfgm.com/odata/ScootLoops?$expand=StartLocation,EndLocation,ScootDetails&$filter=startswith(SCN,'{chorley_new_pasted}')")
+    # # endpoint for multiple junctions
+    # #endpoint <- glue::glue("https://api.tfgm.com/odata/ScootLoops?$expand=StartLocation,EndLocation,ScootDetails&$filter=startswith(SCN,'{paste0(input$select_junction, collapse = 'Or')}')") 
+    # # pull data
+    response <- httr::GET(url = endpoint, config = headers)
+    # process data
+    # parse as text
+    scoot_dat <- fromJSON(content(response, "text"))$value %>%
+      # get geography
+      mutate(start_location_point = StartLocation$LocationSpatial$Geography$WellKnownText,
+             end_location_point = EndLocation$LocationSpatial$Geography$WellKnownText,
+             scoot_linestring = paste0(
+               "LINESTRING (",
+               stringr::str_sub(start_location_point, 8,-2),
+               ", ",
+               stringr::str_sub(end_location_point, 8,-2),
+               ")"
+             )
+      ) %>%
+      # remove these cols as have already dealt with them above
+      select(-c(Id, SCN, StartLocationId, EndLocationId, 
+                StartLocation, EndLocation)) %>%
+      tidyr::unnest(cols = ScootDetails) %>%
+      mutate(LastUpdated = as.POSIXct(LastUpdated, format = "%Y-%m-%dT%H:%M:%OSZ"),
+             scoot_letter = stringr::str_sub(SCN, -1, nchar(SCN))
+      ) %>%
+      rename(average_speed_kmph = AverageSpeed) %>%
+      mutate(average_speed_mph = round(average_speed_kmph * 0.62137119223733, 0),
+             # when link travel time is 0 (ie arm has all red phase because of no vehicles)
+             # average speed defaults to 50mph. Create adjusted average speed to sort this out
+             adjusted_average_speed_mph = ifelse(LinkTravelTime == 0, NA, average_speed_mph),
+             # when flow is low seems to default to 50mph
+             adjusted_average_speed_mph = ifelse(adjusted_average_speed_mph ==50 & CurrentFlow <5, NA, adjusted_average_speed_mph)
+      ) %>%
+      # well known text ie common text format for points
+      # works with col num but not name. needs missings deleted & unnesting
+      filter(!is.na(start_location_point)) %>%
+      # order by scoot letter
+      arrange(scoot_letter) %>%
+      st_as_sf(wkt = 11, crs = 4326) # lat/ long
+  #})
+  
+      selected_junction_mapdata <- scoot_dat %>%
+    tidyr::gather(key = "indicator", value = "value",
+                  c(CongestionPercentage, CurrentFlow,
+                    adjusted_average_speed_mph, LinkStatus, LinkTravelTime)) %>%
+      # filter just to selected indicator
+      filter(indicator == "adjusted_average_speed_mph")
+    
