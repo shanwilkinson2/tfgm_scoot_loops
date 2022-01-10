@@ -174,10 +174,10 @@ server <- function(input, output) {
                              fillColor = ~map_pal()(value), 
                              weight = 2,
                              fillOpacity = 0.8, color = "black", 
-                             popup = ~glue::glue("Scoot letter: {scoot_letter}<br>{indicator_names[indicator_names$varname==input$select_indicator,'prettyname']}: {ifelse(indicator != 'LinkStatus', value, ifelse(value == 0, 'Normal', 'Suspect'))}{indicator_names[indicator_names$varname==input$select_indicator,'suffix']}<br>(start of scoot)")
+                             popup = ~glue::glue("Junction: {junction}<br>Scoot letter: {scoot_letter}<br>{indicator_names[indicator_names$varname==input$select_indicator,'prettyname']}: {ifelse(indicator != 'LinkStatus', value, ifelse(value == 0, 'Normal', 'Suspect'))}{indicator_names[indicator_names$varname==input$select_indicator,'suffix']}<br>(start of scoot)")
             ) %>%
             addPolylines(data = selected_jct_linestring(), color = ~map_pal()(value),
-                         popup = ~glue::glue("Scoot letter: {scoot_letter}<br>{indicator_names[indicator_names$varname==input$select_indicator,'prettyname']}: {ifelse(indicator != 'LinkStatus', value, ifelse(value == 0, 'Normal', 'Suspect'))}{indicator_names[indicator_names$varname==input$select_indicator,'suffix']}<br>(length of scoot)")
+                         popup = ~glue::glue("Junction: {junction}<br>Scoot letter: {scoot_letter}<br>{indicator_names[indicator_names$varname==input$select_indicator,'prettyname']}: {ifelse(indicator != 'LinkStatus', value, ifelse(value == 0, 'Normal', 'Suspect'))}{indicator_names[indicator_names$varname==input$select_indicator,'suffix']}<br>(length of scoot)")
             ) %>%
             addControl(glue::glue("<b>Selected junction map</b><br>Click on points for more detail"), 
                        position = "topright") %>%
@@ -214,15 +214,19 @@ server <- function(input, output) {
                        stringr::str_sub(start_location_point, 8,-2),
                        ", ",
                        stringr::str_sub(end_location_point, 8,-2),
-                       ")"
+                       ")",
+                       # scn seems to link junctions, but just with a different last letter. 
+                       # so remove last letter
+                       junction = stringr::str_sub(SCN, 1, -2)
                    )
             ) %>%
-            # remove these cols as have already dealt with them above
+            # remove these cols as have already extracted above so would have 2
             select(-c(Id, SCN, StartLocationId, EndLocationId, 
                      StartLocation, EndLocation)) %>%
             tidyr::unnest(cols = ScootDetails) %>%
             mutate(LastUpdated = as.POSIXct(LastUpdated, format = "%Y-%m-%dT%H:%M:%OSZ"),
-                   scoot_letter = stringr::str_sub(SCN, -1, nchar(SCN))
+                   scoot_letter = stringr::str_sub(SCN, -1, nchar(SCN)),
+                   junction = stringr::str_sub(SCN, 1, -1)
                    ) %>%
             rename(average_speed_kmph = AverageSpeed) %>%
             mutate(average_speed_mph = round(average_speed_kmph * 0.62137119223733, 0),
@@ -265,7 +269,8 @@ server <- function(input, output) {
     output$selected_jct_table <- DT::renderDT({
         data = selected_jct_data() %>%
             st_drop_geometry() %>%
-            select("Scoot letter" = scoot_letter, Id, SCN, Description,
+            select(Junction = junction,
+                   "Scoot letter" = scoot_letter, Description,
                    "Congestion percentage" = CongestionPercentage,
                    "Current flow" = CurrentFlow, "Adjusted average speed (mph)" = adjusted_average_speed_mph,
                    "Average speed (mph)" = average_speed_mph, "Link status" = LinkStatus,
@@ -277,14 +282,7 @@ server <- function(input, output) {
     # palette for selected juntion map 
     map_pal <- reactive({
         colorNumeric(palette = "YlOrRd",
-                     domain = c(
-                         min(selected_jct_mapdata()$value, na.rm = TRUE),
-                        # when all values are 0 to get them to display as low rather than mid
-                        ifelse(sum(selected_jct_mapdata()$value ==0),
-                               100,
-                            max(selected_jct_mapdata()$value, na.rm = TRUE)
-                        )
-                        ),
+                     domain = selected_jct_mapdata()$value,
                      na.color = "grey"
         )
     })
