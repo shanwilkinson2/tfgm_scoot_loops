@@ -226,7 +226,7 @@ server <- function(input, output) {
             tidyr::unnest(cols = ScootDetails) %>%
             mutate(LastUpdated = as.POSIXct(LastUpdated, format = "%Y-%m-%dT%H:%M:%OSZ"),
                    scoot_letter = stringr::str_sub(SCN, -1, nchar(SCN)),
-                   junction = stringr::str_sub(SCN, 1, -1)
+                   junction = stringr::str_sub(SCN, 1, -2)
                    ) %>%
             rename(average_speed_kmph = AverageSpeed) %>%
             mutate(average_speed_mph = round(average_speed_kmph * 0.62137119223733, 0),
