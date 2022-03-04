@@ -123,7 +123,9 @@ ui <- dashboardPage(skin = "purple",
                          p("Once this has occurred, congestion percentage is calculated using: num secs detector occupied in the cycle * 100 / cycle time in secs")
                          ),
                 tabItem(tabName = "selected_table",
+                    downloadButton("selected_jct_data_download", "Get the data (csv)"),
                     DT::DTOutput("selected_jct_table"),
+                    DT::DTOutput("selected_jct_table_jct_flow"),
                     h3("Explanation of fields"),
                     p("Id, SCN = id numbers for the scootloop"),
                     p("Description = SCN or a written description of the location"),
@@ -239,10 +241,25 @@ server <- function(input, output) {
             # well known text ie common text format for points
             # works with col num but not name. needs missings deleted & unnesting
             filter(!is.na(start_location_point)) %>%
+            # calculate junction total flow
+            group_by(junction) %>%
+            mutate(jct_flow = sum(CurrentFlow),
+                   jct_flow_hr = jct_flow*12,
+                   jct_flow_over1000 = ifelse(jct_flow_hr>1000, TRUE, FALSE),
+                   extracted = Sys.time()
+                   ) %>%
             # order by scoot letter
-            arrange(scoot_letter) %>%
+            arrange(junction, scoot_letter) %>%
             st_as_sf(wkt = 11, crs = 4326) # lat/ long
     })
+    
+    # generate data for download button
+    output$selected_jct_data_download <- downloadHandler(filename = "scootloop_junction_data.csv",
+                                           # create file for downloading
+                                           content = function(file){
+                                               write.csv(selected_jct_data()
+                                                         , file)
+                                           })
     
     # pivoted data to colour for selected junction map points
     selected_jct_mapdata <- reactive({
@@ -279,6 +296,21 @@ server <- function(input, output) {
         },
         rownames = FALSE)
 
+    
+    # generate table for selected junction - overall junction flow
+    output$selected_jct_table_jct_flow <- DT::renderDT({
+        data = selected_jct_data() %>%
+            st_drop_geometry() %>%
+            group_by(junction) %>%
+            slice(1) %>%
+            select(Junction = junction,
+                   `Total junction flow` = jct_flow,
+                   `Hourly flow` = jct_flow_hr,
+                   `Hourly flow over 1000?` = jct_flow_over1000
+            )
+    },
+    rownames = FALSE)
+    
     # palette for selected juntion map 
     map_pal <- reactive({
         colorNumeric(palette = "YlOrRd",
