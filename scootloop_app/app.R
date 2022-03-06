@@ -59,9 +59,12 @@ library(leaflet.extras)
         # )
         
         indicator_names <- data.frame(
-            varname = c("CurrentFlow", "adjusted_average_speed_mph", "CongestionPercentage", "LinkTravelTime", "LinkStatus"),
-            prettyname = c("Current flow", "Adjusted average speed", "Congestion percentage", "Link travel time", "Link status"),
-            suffix = c(" passenger car units (in 5 mins)", " mph (over 5 mins)", "%", " secs", "")
+            varname = c("CurrentFlow", "adjusted_average_speed_mph", "CongestionPercentage",
+                        "LinkTravelTime", "LinkStatus", "jct_flow_hr"),
+            prettyname = c("Current flow", "Adjusted average speed", "Congestion percentage", 
+                           "Link travel time", "Link status", "Total junction flow"),
+            suffix = c(" passenger car units (in 5 mins)", " mph (over 5 mins)", "%",
+                       "secs", "", " PCU per hour equivalent")
             )
            
 ###############################
@@ -102,7 +105,8 @@ ui <- dashboardPage(skin = "purple",
                             "Adjusted average speed" = "adjusted_average_speed_mph", 
                             "Congestion percentage" = "CongestionPercentage",
                             "Link travel time" = "LinkTravelTime",
-                            "Link status" = "LinkStatus"
+                            "Link status" = "LinkStatus",
+                            "Total junction flow" = "jct_flow_hr"
                             ),
                 selectize = TRUE
             )
@@ -120,7 +124,8 @@ ui <- dashboardPage(skin = "purple",
                          p("When link travel time is 0, ie arm is all red phase because of no vehicles, average speed defaults to 50mph. Adjusted average speed shows this as NA instead."),
                          p("Speed seems to sometimes default to 50mph when flows are low."),
                          p("Congestion percentage = congestion is identified when a detector placed where the end of a normal queue at red would be has been continuously occupied for 4 secs."),
-                         p("Once this has occurred, congestion percentage is calculated using: num secs detector occupied in the cycle * 100 / cycle time in secs")
+                         p("Once this has occurred, congestion percentage is calculated using: num secs detector occupied in the cycle * 100 / cycle time in secs"),
+                         p("1000 Passenger Car Units (PCU) per hour at peak is used as a threshold for perception of safety when cycling, in the GM healthy streets design checklist. Above this threshold a protected lane must be provided."),
                          ),
                 tabItem(tabName = "selected_table",
                     downloadButton("selected_jct_data_download", "Get the data (csv)"),
@@ -267,7 +272,8 @@ server <- function(input, output) {
             # pivot_longer doesn't work on spatial df
             tidyr::gather(key = "indicator", value = "value",
                           c(CongestionPercentage, CurrentFlow,
-                            adjusted_average_speed_mph, LinkStatus, LinkTravelTime)) %>%
+                            adjusted_average_speed_mph, LinkStatus, 
+                            LinkTravelTime, jct_flow_hr)) %>%
             # filter just to selected indicator
             filter(indicator == input$select_indicator)
     })
@@ -312,11 +318,35 @@ server <- function(input, output) {
     rownames = FALSE)
     
     # palette for selected juntion map 
-    map_pal <- reactive({
+    map_pal <- reactive({if(input$select_indicator == "jct_flow_hr"){
+        # diverging palette for how much over/ under 1000 PCU per day
+        colorNumeric(palette = "PiYG",
+                     domain = selected_jct_mapdata()$value,
+                     # https://medium.com/ibm-data-ai/center-diverging-colors-on-leaflet-map-515e69d7f81f
+                     # to centre diverging colour palette, stick two palettes together, for below 1000 & above 1000
+                     # colorRampPalette()
+                         # ifelse(
+                         # # if min is further from 1000 than max
+                         # abs(1000- min(selected_jct_mapdata()$value, na.rm = TRUE))>abs(max(selected_jct_mapdata()$value, na.rm = TRUE)-1000),
+                         # # value if true:
+                         # # min = 1000 - distance min is from 1000
+                         # c(1000 - abs(1000 - min(selected_jct_mapdata()$value, na.rm = TRUE)),
+                         #   # max = 1000 + distance min is from 1000
+                         #   1000 + abs(1000- min(selected_jct_mapdata()$value, na.rm = TRUE))),
+                         # # value if false:
+                         # # min = 1000 - distance max is from 1000
+                         # c(1000 - abs(1000 - max(selected_jct_mapdata()$value, na.rm = TRUE)),
+                         #   # max = 1000 + distance max is from 1000
+                         #   1000 + abs(1000- max(selected_jct_mapdata()$value, na.rm = TRUE)))
+                         # ),
+                     reverse = TRUE,
+                     na.color = "grey"
+        )
+    } else {
         colorNumeric(palette = "YlOrRd",
                      domain = selected_jct_mapdata()$value,
                      na.color = "grey"
-        )
+        )}
     })
     
 }
