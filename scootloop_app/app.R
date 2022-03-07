@@ -320,33 +320,47 @@ server <- function(input, output) {
     # palette for selected juntion map 
     map_pal <- reactive({if(input$select_indicator == "jct_flow_hr"){
         # diverging palette for how much over/ under 1000 PCU per day
-        colorNumeric(palette = "PiYG",
-                     domain = selected_jct_mapdata()$value,
-                     # https://medium.com/ibm-data-ai/center-diverging-colors-on-leaflet-map-515e69d7f81f
-                     # to centre diverging colour palette, stick two palettes together, for below 1000 & above 1000
-                     # colorRampPalette()
-                         # ifelse(
-                         # # if min is further from 1000 than max
-                         # abs(1000- min(selected_jct_mapdata()$value, na.rm = TRUE))>abs(max(selected_jct_mapdata()$value, na.rm = TRUE)-1000),
-                         # # value if true:
-                         # # min = 1000 - distance min is from 1000
-                         # c(1000 - abs(1000 - min(selected_jct_mapdata()$value, na.rm = TRUE)),
-                         #   # max = 1000 + distance min is from 1000
-                         #   1000 + abs(1000- min(selected_jct_mapdata()$value, na.rm = TRUE))),
-                         # # value if false:
-                         # # min = 1000 - distance max is from 1000
-                         # c(1000 - abs(1000 - max(selected_jct_mapdata()$value, na.rm = TRUE)),
-                         #   # max = 1000 + distance max is from 1000
-                         #   1000 + abs(1000- max(selected_jct_mapdata()$value, na.rm = TRUE)))
-                         # ),
-                     reverse = TRUE,
-                     na.color = "grey"
-        )
-    } else {
+
+        # if all values are <= 1000
+        if(max(selected_jct_mapdata()$value, na.rm = TRUE)<=1000){
+            colorNumeric(palette = "YlGn",
+                         domain = c(min(selected_jct_mapdata()$value, na.rm = TRUE),
+                                    1000),
+                         # https://medium.com/ibm-data-ai/center-diverging-colors-on-leaflet-map-515e69d7f81f
+                         # to centre diverging colour palette, stick two palettes together, for below 1000 & above 1000
+                         # colorRampPalette()
+                         reverse = TRUE,
+                         na.color = "grey"
+            )
+    }  # if all values are>1000
+            if(min(selected_jct_mapdata()$value, na.rm = TRUE)>1000){
+                colorNumeric(palette = "BuPu",
+                             domain = c(1000,
+                                 max(selected_jct_mapdata()$value, na.rm = TRUE)
+                                ),
+                             # https://medium.com/ibm-data-ai/center-diverging-colors-on-leaflet-map-515e69d7f81f
+                             # to centre diverging colour palette, stick two palettes together, for below 1000 & above 1000
+                             # colorRampPalette()
+                             reverse = FALSE,
+                             na.color = "grey"
+                )
+            }
+        else { # if values are a mix of above & below 1000
+                colorNumeric(palette = "PiYG",
+                             domain = selected_jct_mapdata()$value,
+                             # https://medium.com/ibm-data-ai/center-diverging-colors-on-leaflet-map-515e69d7f81f
+                             # to centre diverging colour palette, stick two palettes together, for below 1000 & above 1000
+                             # colorRampPalette()
+                             reverse = TRUE,
+                             na.color = "grey"
+                )
+             }
+    } else{
         colorNumeric(palette = "YlOrRd",
                      domain = selected_jct_mapdata()$value,
                      na.color = "grey"
-        )}
+                    )
+        }
     })
     
 }
