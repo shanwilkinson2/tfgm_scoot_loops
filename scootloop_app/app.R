@@ -125,7 +125,8 @@ ui <- dashboardPage(skin = "purple",
                          p("Speed seems to sometimes default to 50mph when flows are low."),
                          p("Congestion percentage = congestion is identified when a detector placed where the end of a normal queue at red would be has been continuously occupied for 4 secs."),
                          p("Once this has occurred, congestion percentage is calculated using: num secs detector occupied in the cycle * 100 / cycle time in secs"),
-                         p("1000 Passenger Car Units (PCU) per hour at peak is used as a threshold for perception of safety when cycling, in the GM healthy streets design checklist. Above this threshold a protected lane must be provided."),
+                         p("1000 Passenger Car Units (PCU) per hour at peak is used as a threshold for perception of safety when cycling, in the GM healthy streets design checklist. Above this threshold a protected lane must be provided. This may also be useful as a wider indicator of comfort."),
+                         p("Stronger purple colours indicate values increasingly higher than 1000, while stronger green colours indicate values increasingly lower than 1000."),
                          ),
                 tabItem(tabName = "selected_table",
                     downloadButton("selected_jct_data_download", "Get the data (csv)"),
@@ -317,44 +318,40 @@ server <- function(input, output) {
     },
     rownames = FALSE)
     
-    # palette for selected juntion map 
+    # palette for selected junction map 
     map_pal <- reactive({if(input$select_indicator == "jct_flow_hr"){
         # diverging palette for how much over/ under 1000 PCU per day
-
-        # if all values are <= 1000
+        
+        # if all values <= 1000
         if(max(selected_jct_mapdata()$value, na.rm = TRUE)<=1000){
-            colorNumeric(palette = "YlGn",
-                         domain = c(min(selected_jct_mapdata()$value, na.rm = TRUE),
-                                    1000),
-                         # https://medium.com/ibm-data-ai/center-diverging-colors-on-leaflet-map-515e69d7f81f
-                         # to centre diverging colour palette, stick two palettes together, for below 1000 & above 1000
-                         # colorRampPalette()
-                         reverse = TRUE,
-                         na.color = "grey"
+            colorNumeric(
+                palette = colorRampPalette(colors = c("darkgreen", "white"), space = "Lab")(1000),
+                domain = c(0, 1000),
+                na.color = "grey"
             )
-    }  # if all values are>1000
+        } else
+        
+        # if all values are>1000
             if(min(selected_jct_mapdata()$value, na.rm = TRUE)>1000){
-                colorNumeric(palette = "BuPu",
-                             domain = c(1000,
-                                 max(selected_jct_mapdata()$value, na.rm = TRUE)
-                                ),
-                             # https://medium.com/ibm-data-ai/center-diverging-colors-on-leaflet-map-515e69d7f81f
-                             # to centre diverging colour palette, stick two palettes together, for below 1000 & above 1000
-                             # colorRampPalette()
-                             reverse = FALSE,
-                             na.color = "grey"
+                colorNumeric(
+                    palette = colorRampPalette(colors = c("white", "darkslateblue"), space = "Lab")(max(selected_jct_mapdata()$value, na.rm = TRUE)-1000),
+                    domain = c(1000, 
+                               max(selected_jct_mapdata()$value, na.rm = TRUE)
+                               ),
+                    na.color = "grey"
                 )
-            }
+            } 
+        
         else { # if values are a mix of above & below 1000
-                colorNumeric(palette = "PiYG",
-                             domain = selected_jct_mapdata()$value,
-                             # https://medium.com/ibm-data-ai/center-diverging-colors-on-leaflet-map-515e69d7f81f
-                             # to centre diverging colour palette, stick two palettes together, for below 1000 & above 1000
-                             # colorRampPalette()
-                             reverse = TRUE,
-                             na.color = "grey"
-                )
-             }
+            colorNumeric(
+                palette = c(
+                    colorRampPalette(colors = c("darkgreen", "white"), space = "Lab")(1000),
+                    colorRampPalette(colors = c("white", "darkslateblue"), space = "Lab")(max(selected_jct_mapdata()$value, na.rm = TRUE)-1000)
+                ),
+                domain = c(0, max(selected_jct_mapdata()$value, na.rm = TRUE)),
+                na.color = "grey"       
+            )
+        }
     } else{
         colorNumeric(palette = "YlOrRd",
                      domain = selected_jct_mapdata()$value,
