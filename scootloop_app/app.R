@@ -49,14 +49,6 @@ library(leaflet.extras)
             select(junction) %>%
             arrange(junction) %>%
             unique()    
-
-        # names of selected indicator as a vector, so can refer to it   
-        # indicator_names <- c("Current flow" = "CurrentFlow", 
-        #                      "Adjusted average speed" = "adjusted_average_speed_mph", 
-        #                      "Congestion percentage" = "CongestionPercentage",
-        #                      "Link travel time" = "LinkTravelTime",
-        #                      "Link status" = "LinkStatus"
-        # )
         
         indicator_names <- data.frame(
             varname = c("CurrentFlow", "adjusted_average_speed_mph", "CongestionPercentage",
@@ -116,17 +108,20 @@ ui <- dashboardPage(skin = "purple",
         dashboardBody(
            tabItems(
                 tabItem(tabName = "all_map",
+                        tags$style(type = "text/css", "#map {height: calc(100vh - 80px) !important;}"),
                          leafletOutput("scoot_location_plot")
                          ),
                 tabItem(tabName = "selected_map",
+                        tags$style(type = "text/css", "#map {height: calc(100vh - 80px) !important;}"),
                          leafletOutput("selected_jct_map"),
                          h4("All scoots run towards the junction."),
                          p("When link travel time is 0, ie arm is all red phase because of no vehicles, average speed defaults to 50mph. Adjusted average speed shows this as NA instead."),
                          p("Speed seems to sometimes default to 50mph when flows are low."),
                          p("Congestion percentage = congestion is identified when a detector placed where the end of a normal queue at red would be has been continuously occupied for 4 secs."),
                          p("Once this has occurred, congestion percentage is calculated using: num secs detector occupied in the cycle * 100 / cycle time in secs"),
-                         p("1000 Passenger Car Units (PCU) per hour at peak is used as a threshold for perception of safety when cycling, in the GM healthy streets design checklist. Above this threshold a protected lane must be provided. This may also be useful as a wider indicator of comfort."),
-                         p("Stronger purple colours indicate values increasingly higher than 1000, while stronger green colours indicate values increasingly lower than 1000."),
+                         p("1000 Passenger Car Units (PCU) per hour at peak is used as a threshold for perception of safety when cycling, in the GM healthy streets design checklist. 
+                             This is equivalent to 84+ PCU's per 5 mins. Above this threshold a protected lane must be provided. This could also be useful as a wider indicator of comfort.
+                             Stronger purple colours indicate values increasingly higher than 1000, while stronger green colours indicate values increasingly lower than 1000."),
                          ),
                 tabItem(tabName = "selected_table",
                     downloadButton("selected_jct_data_download", "Get the data (csv)"),
