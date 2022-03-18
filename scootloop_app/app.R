@@ -40,7 +40,15 @@ library(leaflet.extras)
             # works with col num but not name. needs missings deleted & unnesting
             # col 8 = end location. All scoots point towards the junction, so end is at the junction
             st_as_sf(wkt = 8, crs = 4326) # lat/ long
-    
+        
+    # aggregate by juntion & get centroid
+        # so only one point per junction
+        scoot_loc3 <- scoot_loc2 %>%
+            aggregate(., by = list(scoot_loc2$junction), function(x) x = x[1]) %>% 
+            st_centroid() %>% 
+            select(-c(Group.1: description, start_location_id:start_location_point)) %>%
+            mutate(rownum = seq.int(nrow(scoot_loc3)))
+        
         # get list of unique junctions (from SCN minus last character)  
         all_junctions <- scoot_loc2 %>% 
             # drop geometry
@@ -209,9 +217,10 @@ server <- function(input, output, session) {
                              selected = selected$groups)
     })
     
-    # copy - not working yet
+    # copy - not working properly yet, 
+    # adding but not removing from group, so when add new one it adds all previously selected
     observeEvent(input$scoot_location_plot2_marker_click, {
-        if(input$scoot_location_plot2_marker_click$group == "regions"){
+        if(input$scoot_location_plot2_marker_click$group == "unselected"){
             selected2$groups <- c(selected2$groups, input$scoot_location_plot2_marker_click$id)
             proxy_all_jct %>% showGroup(group = input$scoot_location_plot2_marker_click$id)
         } else {
@@ -241,7 +250,7 @@ server <- function(input, output, session) {
         }
     }, ignoreNULL = FALSE)
     
-    # copy - working but only highlighting one scoot per junction
+    # copy - workimg
     observeEvent(input$selected_jct, {
         removed_via_selectInput <- setdiff(selected2$groups, input$selected_jct)
         added_via_selectInput <- setdiff(input$selected_jct, selected2$groups)
@@ -284,22 +293,26 @@ server <- function(input, output, session) {
     # map of scootloop locations  
     # copy
     output$scoot_location_plot2 <- renderLeaflet({
-        mylabels <- as.list(glue::glue("Last updated: {format(scoot_loc2$last_updated, '%d/%m/%y')}<br>Scoot id: {scoot_loc2$id}<br>Junction number: {scoot_loc2$junction}<br>Desription: {scoot_loc2$description} <br> (end of scoot)"))
+        # mylabels <- as.list(glue::glue("Last updated: {format(scoot_loc2$last_updated, '%d/%m/%y')}<br>Scoot id: {scoot_loc2$id}<br>Junction number: {scoot_loc2$junction}<br>Desription: {scoot_loc2$description} <br> (end of scoot)"))
+        mylabels <- as.list(glue::glue("Junction number: {scoot_loc3$junction}<br>Last updated: {format(scoot_loc3$last_updated, '%d/%m/%y')}"))
         
-        leaflet(scoot_loc2) %>%
+        
+        leaflet(scoot_loc3) %>%
             addProviderTiles("Stamen.TonerLite") %>%
             addResetMapButton %>%
             # unselected points
             addCircleMarkers(radius = 3, color = "blue", 
                              label = lapply(mylabels, HTML),
-                             group = "regions", layerId = ~id
+                             group = "unselected", 
+                             layerId = ~junction
             ) %>%
             # selected points
-            addCircleMarkers(radius = 4, color = "red", 
+            addCircleMarkers(radius = 5, color = "red", 
                              label = lapply(mylabels, HTML),
-                             group = ~junction, layerId = ~junction
+                             group = ~junction, 
+                             layerId = ~rownum
             ) %>%
-            hideGroup(group = scoot_loc2$junction) %>%
+            hideGroup(group = scoot_loc3$junction) %>%
             addControl(glue::glue("<b>Location of GM scootloops</b><br>Hover over points for more detail"), 
                        position = "topright")
     })
