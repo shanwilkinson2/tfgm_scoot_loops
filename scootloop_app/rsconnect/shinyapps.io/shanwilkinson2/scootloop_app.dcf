@@ -5,9 +5,9 @@ account: shanwilkinson2
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3912352
-bundleId: 5662823
+bundleId: 5708624
 url: https://shanwilkinson2.shinyapps.io/scootloop_app/
-when: 1646849692.35782
-lastSyncTime: 1646849692.35782
+when: 1647868197.38091
+lastSyncTime: 1647868197.38091
 asMultiple: FALSE
 asStatic: FALSE

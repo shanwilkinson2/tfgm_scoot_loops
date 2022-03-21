@@ -88,17 +88,6 @@ ui <- dashboardPage(skin = "purple",
                 menuItem("Selected junction table", tabName = "selected_table"),
                 menuItem("About", tabName = "about_app")
                 ),
-            
-            # # dropdown. selectize = TRUE lets you type in
-            # selectInput(
-            #     inputId = "select_junction",
-            #     label = "Select junction:",
-            #     choices = all_junctions,
-            #     selected = "N53211",
-            #     selectize = TRUE,
-            #     multiple = TRUE
-            # ),
-            # em("(Delete selected junction to type & search)"),
             h5("'Selected' tabs will display info for selected junction only"),
             selectInput(
                 inputId = "select_indicator",
@@ -112,11 +101,6 @@ ui <- dashboardPage(skin = "purple",
                             ),
                 selectize = TRUE
             ),
-            # selectizeInput(inputId = "selected_locations",
-            #                label = "selected",
-            #                choices = nc$NAME,
-            #                selected = NULL,
-            #                multiple = TRUE),
             selectizeInput(inputId = "selected_jct",
                            label = "Selected junctions",
                            choices = all_junctions,
@@ -129,9 +113,7 @@ ui <- dashboardPage(skin = "purple",
            tabItems(
                 tabItem(tabName = "all_map",
                         tags$style(type = "text/css", "#map {height: calc(100vh - 80px) !important;}"),
-                        # leafletOutput("map"),  
                         leafletOutput("scoot_location_plot2"),
-                        # leafletOutput("scoot_location_plot"),
                         p("More information about scoots in selected junctions will show in the other tabs.")
                          ),
                 tabItem(tabName = "selected_map",
@@ -163,9 +145,21 @@ ui <- dashboardPage(skin = "purple",
                     p("Looks like there might be some other defaulting to 50mph when flows are low.")
                 ),
                 tabItem(tabName = "about_app",
-                         p("This data contains details of SCOOT loops on highways in Greater Manchester."),
-                         p("SCOOT is a measure of congestion at traffic signals."),
-                         p("Contains Transport for Greater Manchester data. Contains OS data © Crown copyright and database right 2016."),
+                        h2("What is SCOOT?"),
+                        p("SCOOT loops are installed at traffic signals, and are used to measure various elements of traffic flow and adjust signal timings in real time to reduce traffic congestion.
+                        This app uses data from SCOOT loops on highways in Greater Manchester."),
+                         p("SCOOT stands for 'Split Cycle Offset Optimisation Technique'. 
+                           It automatically adjusts the traffic signal timings to adapt to current traffic conditions, using flow data from traffic sensors."),
+                        p("Adjacent signal controlled junctions and standalone crossings are collected together into 'regions'. 
+                          SCOOT then calculates signal timings for the 'region', by changing the stage lengths, splits, and offsets between neighbouring traffic signals, to coordinate them.
+                          It tries to balance delays and so reduce congestion."),
+                        p("Many transport authorities use SCOOT on their traffic signals."),
+                        br(),
+                        h2("About this app"),
+                        p("Not all signal controlled junctions in Greater Manchester use SCOOT, this app displays information from those that do."),
+                        br(),
+                        h2("About the data"),
+                        p("Contains Transport for Greater Manchester data. Contains OS data © Crown copyright and database right 2016."),
                          a("TfGM", href = "https://developer.tfgm.com/developer", target = "_blank"),
                          p("Code for this app is on my github."),
                          a("Github", href = "https://github.com/shanwilkinson2/tfgm_scoot_loops", target = "_blank")
@@ -177,46 +171,17 @@ ui <- dashboardPage(skin = "purple",
 
 # Define server logic 
 server <- function(input, output, session) {
-    
-    # # map of scootloop locations  
-    # # original
-    # output$scoot_location_plot <- renderLeaflet({
-    #     leaflet(scoot_loc2) %>%
-    #         addProviderTiles("Stamen.TonerLite") %>%
-    #         addResetMapButton %>%
-    #         addCircleMarkers(radius = 3, color = "blue", 
-    #                          popup = ~glue::glue("Last updated: {format(last_updated, '%d/%m/%y')}<br>Scoot id: {id}<br>Junction number: {junction}<br>Desription: {description} <br> (end of scoot)")
-    #         ) %>%
-    #         addControl(glue::glue("<b>Location of GM scootloops</b><br>Click on points for more detail"), 
-    #                    position = "topright")
-    # })
+
+# sort out stuff for click select/ deselect on all map or dropdown
     
     #define leaflet proxy for selected junction map
-    # proxy <- leafletProxy("map")
     proxy_all_jct <- leafletProxy("scoot_location_plot2")
     
     #create empty vector to hold all click ids
-    # selected <- reactiveValues(groups = vector())
     selected2 <- reactiveValues(groups = vector())
     
     # observe event
-    # #original
-    # observeEvent(input$map_shape_click, {
-    #     if(input$map_shape_click$group == "regions"){
-    #         selected$groups <- c(selected$groups, input$map_shape_click$id)
-    #         proxy %>% showGroup(group = input$map_shape_click$id)
-    #     } else {
-    #         selected$groups <- setdiff(selected$groups, input$map_shape_click$group)
-    #         proxy %>% hideGroup(group = input$map_shape_click$group)
-    #     }
-    #     updateSelectizeInput(session,
-    #                          inputId = "selected_locations",
-    #                          label = "",
-    #                          choices = nc$NAME,
-    #                          selected = selected$groups)
-    # })
-    
-    # copy 
+    # click map to select/ deselect
     observeEvent(input$scoot_location_plot2_marker_click, {
         # if clicked isn't already added, add to selected$groups
         if(input$scoot_location_plot2_marker_click$group == "unselected"){
@@ -236,24 +201,9 @@ server <- function(input, output, session) {
                              choices = all_junctions,
                              selected = selected2$groups)
     })
-    
-    # #original
-    # observeEvent(input$selected_locations, {
-    #     removed_via_selectInput <- setdiff(selected$groups, input$selected_locations)
-    #     added_via_selectInput <- setdiff(input$selected_locations, selected$groups)
-    #     
-    #     if(length(removed_via_selectInput) > 0){
-    #         selected$groups <- input$selected_locations
-    #         proxy %>% hideGroup(group = removed_via_selectInput)
-    #     }
-    #     
-    #     if(length(added_via_selectInput) > 0){
-    #         selected$groups <- input$selected_locations
-    #         proxy %>% showGroup(group = added_via_selectInput)
-    #     }
-    # }, ignoreNULL = FALSE)
-    
-    # copy - workimg
+
+    # observe event 
+    # coordinate select via map or dropdown
     observeEvent(input$selected_jct, {
         removed_via_selectInput <- setdiff(selected2$groups, input$selected_jct)
         added_via_selectInput <- setdiff(input$selected_jct, selected2$groups)
@@ -269,36 +219,10 @@ server <- function(input, output, session) {
         }
     }, ignoreNULL = FALSE)
     
-    # #initial map output
-    # output$map <- renderLeaflet({
-    #     leaflet() %>%
-    #         addTiles() %>%
-    #         addPolygons(data = nc,
-    #                     fillColor = "white",
-    #                     fillOpacity = 0.5,
-    #                     color = "black",
-    #                     stroke = TRUE,
-    #                     weight = 1,
-    #                     layerId = ~NAME,
-    #                     group = "regions",
-    #                     label = ~NAME) %>%
-    #         addPolygons(data = nc,
-    #                     fillColor = "red",
-    #                     fillOpacity = 0.5,
-    #                     weight = 1,
-    #                     color = "black",
-    #                     stroke = TRUE,
-    #                     layerId = ~CNTY_ID,
-    #                     group = ~NAME) %>%
-    #         hideGroup(group = nc$NAME) # nc$CNTY_ID
-    # }) #END RENDER LEAFLET
-    
-    # map of scootloop locations  
-    # copy
+    # map of all scoot juctions  
     output$scoot_location_plot2 <- renderLeaflet({
-        # mylabels <- as.list(glue::glue("Last updated: {format(scoot_loc2$last_updated, '%d/%m/%y')}<br>Scoot id: {scoot_loc2$id}<br>Junction number: {scoot_loc2$junction}<br>Desription: {scoot_loc2$description} <br> (end of scoot)"))
-        mylabels <- as.list(glue::glue("Junction number: {scoot_loc3$junction}<br>Last updated: {format(scoot_loc3$last_updated, '%d/%m/%y')}"))
         
+        mylabels <- as.list(glue::glue("Junction number: {scoot_loc3$junction}<br>Last updated: {format(scoot_loc3$last_updated, '%d/%m/%y')}"))
         
         leaflet(scoot_loc3) %>%
             addProviderTiles("Stamen.TonerLite") %>%
@@ -324,9 +248,9 @@ server <- function(input, output, session) {
                        position = "topright")
     })
     
-    ##################
+    ################## other stuff #
     
-    # selected junction map1
+    # selected junction map
     output$selected_jct_map <- renderLeaflet({
         leaflet() %>%
         addProviderTiles("Stamen.TonerLite") %>%
