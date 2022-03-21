@@ -260,7 +260,7 @@ server <- function(input, output, session) {
         added_via_selectInput <- setdiff(input$selected_jct, selected2$groups)
         
         if(length(removed_via_selectInput) > 0){
-            selected$groups <- input$selected_jct
+            selected2$groups <- input$selected_jct # changed selected to selected2 - see if this solves the crashing when deselect on dropdown
             proxy_all_jct %>% hideGroup(group = removed_via_selectInput)
         }
         
