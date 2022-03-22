@@ -153,7 +153,8 @@ ui <- dashboardPage(skin = "purple",
                            It aims to minimise delay, stops, and reduce congestion.").
                          p("A SCOOT network is divided into 'regions', each containing a number of 'nodes' (signallised junctions and crossings) 
                             which are all run at the same cycle time (or a multiplier such as half or double) to allow co-ordination. 
-                            The SCOOT software adjusts the duration of each green and red phase within the cycle (the split optimiser); 
+                            The SCOOT software makes realtime adjustments to: 
+                            the duration of each green and red phase within the cycle (the split optimiser); 
                             the overall duration of the cycle (the cycle optimiser);
                             and the amount of time the phases are offset from those on other nearby traffic signals (the offset optimiser)."),
                          p("This has the effect of providing more green on the busier approaches when required, 
