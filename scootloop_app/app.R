@@ -149,11 +149,17 @@ ui <- dashboardPage(skin = "purple",
                         p("SCOOT loops are installed at traffic signals, and are used to measure various elements of traffic flow and adjust signal timings in real time to reduce traffic congestion.
                         This app uses data from SCOOT loops on highways in Greater Manchester."),
                          p("SCOOT stands for 'Split Cycle Offset Optimisation Technique'. 
-                           It automatically adjusts the traffic signal timings to adapt to current traffic conditions, using flow data from traffic sensors."),
-                        p("Adjacent signal controlled junctions and standalone crossings are collected together into 'regions'. 
-                          SCOOT then calculates signal timings for the 'region', by changing the stage lengths, splits, and offsets between neighbouring traffic signals, to coordinate them.
-                          It tries to balance delays and so reduce congestion."),
-                        p("Many transport authorities use SCOOT on their traffic signals."),
+                           The system uses data from traffic sensors to automatically adjust the traffic signal timings across a network of nearby signals to adapt to current traffic conditions.
+                           It aims to minimise delay, stops, and reduce congestion.").
+                         p("A SCOOT network is divided into 'regions', each containing a number of 'nodes' (signalled junctions and crossings) 
+                            which are all run at the same cycle time (or a multiplier such as half or double) to allow co-ordination. 
+                            The SCOOT software adjusts the duration of the green and red phases within the cycle (the split optimiser); 
+                            the amount of time the phases are offset from those on other nearby traffic signals (the offset optimiser);
+                            and the overall duration of the cycle (the cycle optimiser)."),
+                         p("This has the effect of providing more green on the busier approaches when required, 
+                            but also taking into account the effect this has on the surrounding traffic signal network, so traffic moving through on green doesn't 
+                            block the junciton but joins another moving queue."),
+                        p("Many transport authorities use SCOOT or other systems on their traffic signals."),
                         br(),
                         h2("About this app"),
                         p("Not all signal controlled junctions in Greater Manchester use SCOOT, this app displays information from those that do."),
