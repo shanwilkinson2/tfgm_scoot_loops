@@ -114,9 +114,12 @@ ui <- dashboardPage(skin = "purple",
                 tabItem(tabName = "all_map",
                         tags$style(type = "text/css", "#map {height: calc(100vh - 80px) !important;}"),
                         leafletOutput("scoot_location_plot2"),
-                        p("More information about scoots in selected junctions will show in the other tabs.")
-                         ),
-                tabItem(tabName = "selected_map",
+                        p("More information about scoots in selected junctions will show in the other tabs."),
+                        p("Note - for mobile or other devices without 'hover' functionality, click displays both label and select.
+                        When the label is showing the junction will be selected. 
+                          There may be a slight delay while this happens."),
+                        ),
+                        tabItem(tabName = "selected_map",
                         tags$style(type = "text/css", "#map {height: calc(100vh - 80px) !important;}"),
                         leafletOutput("selected_jct_map"),
                          h4("All scoots run towards the junction."),
@@ -145,12 +148,23 @@ ui <- dashboardPage(skin = "purple",
                     p("Looks like there might be some other defaulting to 50mph when flows are low.")
                 ),
                 tabItem(tabName = "about_app",
+                        h2("Overview"),
+                        p("SCOOT loops are installed at traffic signals, 
+                        and are used to measure various elements of traffic flow and adjust signal timings in real time to reduce traffic congestion.
+                        This app uses live data from SCOOT loops on highways in Greater Manchester. 
+                        Many transport authorities use SCOOT or other systems on their traffic signals."),
+                        p("On this app you can see current traffic flow, speed, and congestion.
+                        Our streets are a large part of our public realm, and for many streets traffic plays a large part in how they are used. 
+                        Knowing more about the traffic situation can help us identify issues and propose solutions. 
+                        The data collected by scootloops is available for use straight away.
+                          "),
+                        br(),
                         h2("What is SCOOT?"),
                         p("SCOOT loops are installed at traffic signals, and are used to measure various elements of traffic flow and adjust signal timings in real time to reduce traffic congestion.
                         This app uses data from SCOOT loops on highways in Greater Manchester."),
                          p("SCOOT stands for 'Split Cycle Offset Optimisation Technique'. 
                            The system uses data from traffic sensors to automatically adjust the traffic signal timings across a network of nearby signals to adapt to current traffic conditions.
-                           It aims to minimise delay, stops, and reduce congestion.").
+                           It aims to minimise delay, stops, and reduce congestion."),
                          p("A SCOOT network is divided into 'regions', each containing a number of 'nodes' (signallised junctions and crossings) 
                             which are all run at the same cycle time (or a multiplier such as half or double) to allow co-ordination. 
                             The SCOOT software makes realtime adjustments to: 
@@ -159,18 +173,36 @@ ui <- dashboardPage(skin = "purple",
                             and the amount of time the phases are offset from those on other nearby traffic signals (the offset optimiser)."),
                          p("This has the effect of providing more green on the busier approaches when required, 
                             but also taking into account the effect this has on the surrounding traffic signal network, so traffic moving through on green doesn't 
-                            block the junciton but joins another moving queue, so maximising junction capacity."),
+                            block the junction but joins another moving queue, so maximising junction capacity."),
                         p("Many transport authorities use SCOOT or other systems on their traffic signals."),
                         br(),
                         h2("About this app"),
-                        p("Not all signal controlled junctions in Greater Manchester use SCOOT, this app displays information from those that do."),
+                        p("Not all signal controlled junctions in Greater Manchester use SCOOT, 
+                          this app displays information from those that do. While measuring information to adjust signal timings, 
+                          the scootloops provide a rich source of live on street data.
+                          On this app you can see current traffic flow, speed, and congestion.
+                          "),
+                        p("Our streets are a large part of our public realm. 
+                          Traffic speed and volume can impact how people move around and spend time on our streets.
+                          Knowing more about the traffic situation can help us identify issues and propose solutions. 
+                          The data collected by scootloops is available for use straight away, without needing to set up data collection.
+                          "),
+                        p("There may be local concerns around speeding when traffic flows are lighter:
+                          Average speeds on longer scoots or standalone crossings, 
+                          which are more likely to capture a speed that is less influenced by an imminent red light,
+                          may provide information on whether this is occurring."),
+                        p("When planning facilities to enable people to cycle, 
+                          certain facilities are only suitable for roads with traffic flows up to a certain level per hour or day. 
+                          This app can provide a quick indication of whether proposed measures are likely to be suitable given existing traffic flows."),
+                        p("Many highways authorities use similar systems, and SCOOT data is often available via open data portals. 
+                          Even if you are most interested in an area outside Greater Manchester, this app and the code used to create it may provide information on 
+                          a data source that can be accessed for other areas."),
                         br(),
                         h2("About the data"),
                         p("Contains Transport for Greater Manchester data. Contains OS data © Crown copyright and database right 2016."),
-                         a("TfGM", href = "https://developer.tfgm.com/developer", target = "_blank"),
-                         p("Code for this app is on my github."),
-                         a("Github", href = "https://github.com/shanwilkinson2/tfgm_scoot_loops", target = "_blank")
-                         )
+                        p("This app uses data from the ", a("TfGM API", href = "https://developer.tfgm.com/developer", target = "_blank"), ""),
+                        p("Code for this app is on my", a("Github", href = "https://github.com/shanwilkinson2/tfgm_scoot_loops", target = "_blank"))
+                    )
             )
         )
     )
@@ -216,7 +248,7 @@ server <- function(input, output, session) {
         added_via_selectInput <- setdiff(input$selected_jct, selected2$groups)
         
         if(length(removed_via_selectInput) > 0){
-            selected2$groups <- input$selected_jct # changed selected to selected2 - see if this solves the crashing when deselect on dropdown
+            selected2$groups <- input$selected_jct 
             proxy_all_jct %>% hideGroup(group = removed_via_selectInput)
         }
         
@@ -251,7 +283,7 @@ server <- function(input, output, session) {
                              layerId = ~rownum
             ) %>%
             hideGroup(group = scoot_loc3$junction) %>%
-            addControl(glue::glue("<b>Location of GM scoot junctions</b><br>Click to select/ deselect"), 
+            addControl(glue::glue("<b>Location of GM scoot junctions</b><br>Hover for label | Click to select/ deselect"), 
                        position = "topright")
     })
     
@@ -259,6 +291,8 @@ server <- function(input, output, session) {
     
     # selected junction map
     output$selected_jct_map <- renderLeaflet({
+        mylabels <- as.list(glue::glue("Junction: {selected_jct_mapdata()$junction}<br>Scoot letter: {selected_jct_mapdata()$scoot_letter}<br>{indicator_names[indicator_names$varname==input$select_indicator,'prettyname']}: {ifelse(selected_jct_mapdata()$indicator != 'LinkStatus', selected_jct_mapdata()$value, ifelse(selected_jct_mapdata()$value == 0, 'Normal', 'Suspect'))}{indicator_names[indicator_names$varname==input$select_indicator,'suffix']}"))
+        
         leaflet() %>%
         addProviderTiles("Stamen.TonerLite") %>%
             addResetMapButton %>%
@@ -267,12 +301,12 @@ server <- function(input, output, session) {
                              fillColor = ~map_pal()(value), 
                              weight = 2,
                              fillOpacity = 0.8, color = "black", 
-                             popup = ~glue::glue("Junction: {junction}<br>Scoot letter: {scoot_letter}<br>{indicator_names[indicator_names$varname==input$select_indicator,'prettyname']}: {ifelse(indicator != 'LinkStatus', value, ifelse(value == 0, 'Normal', 'Suspect'))}{indicator_names[indicator_names$varname==input$select_indicator,'suffix']}<br>(start of scoot)")
+                             label = lapply(mylabels, HTML)
             ) %>%
             addPolylines(data = selected_jct_linestring(), color = ~map_pal()(value),
-                         popup = ~glue::glue("Junction: {junction}<br>Scoot letter: {scoot_letter}<br>{indicator_names[indicator_names$varname==input$select_indicator,'prettyname']}: {ifelse(indicator != 'LinkStatus', value, ifelse(value == 0, 'Normal', 'Suspect'))}{indicator_names[indicator_names$varname==input$select_indicator,'suffix']}<br>(length of scoot)")
+                         label = lapply(mylabels, HTML)
             ) %>%
-            addControl(glue::glue("<b>Selected junction map</b><br>Click on points for more detail"), 
+            addControl(glue::glue("<b>Selected junction map</b><br>Hover for more detail"), 
                        position = "topright") %>%
             addLegend(pal = map_pal(),
                       values = selected_jct_mapdata()$value,
