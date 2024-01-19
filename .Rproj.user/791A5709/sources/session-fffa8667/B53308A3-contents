@@ -294,7 +294,7 @@ server <- function(input, output, session) {
         mylabels <- as.list(glue::glue("Junction: {selected_jct_mapdata()$junction}<br>Scoot letter: {selected_jct_mapdata()$scoot_letter}<br>{indicator_names[indicator_names$varname==input$select_indicator,'prettyname']}: {ifelse(selected_jct_mapdata()$indicator != 'LinkStatus', selected_jct_mapdata()$value, ifelse(selected_jct_mapdata()$value == 0, 'Normal', 'Suspect'))}{indicator_names[indicator_names$varname==input$select_indicator,'suffix']}"))
         
         leaflet() %>%
-        addProviderTiles("Esri.WorldGrayCanvas") %>%
+        addProviderTiles(git ) %>%
             addResetMapButton %>%
             addCircleMarkers(data = selected_jct_mapdata(), 
                              radius = 8, 
