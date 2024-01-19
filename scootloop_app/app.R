@@ -153,7 +153,7 @@ server <- function(input, output) {
     # map of scootloop locations   
     output$scoot_location_plot <- renderLeaflet({
         leaflet(scoot_loc2) %>%
-            addProviderTiles("Stamen.TonerLite") %>%
+            addProviderTiles("Esri.WorldGrayCanvas") %>%
             addResetMapButton %>%
             addCircleMarkers(radius = 3, color = "blue", 
                              popup = ~glue::glue("Last updated: {format(last_updated, '%d/%m/%y')}<br>Scoot id: {id}<br>Junction number: {junction}<br>Desription: {description} <br> (end of scoot)")
@@ -165,7 +165,7 @@ server <- function(input, output) {
     # selected junction map
     output$selected_jct_map <- renderLeaflet({
         leaflet() %>%
-        addProviderTiles("Stamen.TonerLite") %>%
+        addProviderTiles("Esri.WorldGrayCanvas") %>%
             addResetMapButton %>%
             addCircleMarkers(data = selected_jct_mapdata(), radius = 8, 
                              fillColor = ~map_pal()(value), 
